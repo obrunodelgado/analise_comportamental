@@ -1,22 +1,129 @@
 
 <style>
+    :root {
+      --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      --color-text-primary: #1a1a2e;
+      --color-text-secondary: #555770;
+      --color-text-info: #1a5fb4;
+      --color-text-success: #1a7d45;
+      --color-text-danger: #c4314b;
+      --color-background-primary: #ffffff;
+      --color-background-secondary: #f4f5f7;
+      --color-background-info: #e8f0fe;
+      --color-border-secondary: #c4c7cf;
+      --color-border-tertiary: #dcdfe6;
+      --color-border-info: #a8c7f5;
+      --border-radius-md: 8px;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--font-sans); }
+    body { font-family: var(--font-sans); color: var(--color-text-primary); background: var(--color-background-primary); }
     .container { padding: 1rem 0; }
+    
     .nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
-    .nav-btn { padding: 7px 14px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; color: var(--color-text-secondary); font-size: 13px; cursor: pointer; transition: all .15s; }
-    .nav-btn.active { background: var(--color-background-info); color: var(--color-text-info); border-color: var(--color-border-info); font-weight: 500; }
-    .nav-btn:hover:not(.active) { background: var(--color-background-secondary); color: var(--color-text-primary); }
+    .nav-btn {
+      padding: 9px 18px;
+      border: 1.5px solid var(--color-border-secondary);
+      border-radius: var(--border-radius-md);
+      background: var(--color-background-primary);
+      color: var(--color-text-secondary);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,.06);
+    }
+    .nav-btn.active {
+      background: var(--color-text-info);
+      color: #fff;
+      border-color: var(--color-text-info);
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(26,95,180,.25);
+    }
+    .nav-btn:hover:not(.active) {
+      background: var(--color-background-secondary);
+      color: var(--color-text-primary);
+      border-color: #a0a4b0;
+      box-shadow: 0 2px 4px rgba(0,0,0,.08);
+    }
+    
+    select,
+    .ctrl-row select {
+      flex: 1;
+      padding: 9px 32px 9px 12px;
+      border: 1.5px solid var(--color-border-secondary);
+      border-radius: var(--border-radius-md);
+      background: var(--color-background-primary);
+      color: var(--color-text-primary);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      cursor: pointer;
+      transition: border-color .15s, box-shadow .15s;
+      box-shadow: 0 1px 2px rgba(0,0,0,.06);
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23555770' d='M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    select:hover,
+    .ctrl-row select:hover {
+      border-color: #888ba0;
+      box-shadow: 0 2px 4px rgba(0,0,0,.08);
+    }
+    select:focus,
+    .ctrl-row select:focus {
+      outline: none;
+      border-color: var(--color-text-info);
+      box-shadow: 0 0 0 3px rgba(26,95,180,.15);
+    }
+    
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--color-border-tertiary);
+      outline: none;
+      transition: background .15s;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--color-text-info);
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,.18);
+      cursor: pointer;
+      transition: transform .1s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+    input[type=range]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--color-text-info);
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,.18);
+      cursor: pointer;
+    }
+    
     .panel { display: none; }
     .panel.active { display: block; }
-    .section-title { font-size: 16px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 6px; }
+    .section-title { font-size: 16px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 6px; }
     .section-sub { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1.2rem; line-height: 1.5; }
     .ctrl-row { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
-    .ctrl-row label { font-size: 13px; color: var(--color-text-secondary); min-width: 140px; }
+    .ctrl-row label { font-size: 13px; color: var(--color-text-secondary); min-width: 140px; font-weight: 500; }
     .ctrl-row input[type=range] { flex: 1; }
-    .ctrl-row .val { font-size: 13px; font-weight: 500; min-width: 60px; color: var(--color-text-primary); }
+    .ctrl-row .val { font-size: 13px; font-weight: 600; min-width: 60px; color: var(--color-text-primary); }
     .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.2rem; }
-    .metric-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 14px; }
+    .metric-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 14px; border: 1px solid var(--color-border-tertiary); }
     .metric-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .04em; }
     .metric-value { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
     .chart-wrap { position: relative; width: 100%; margin-bottom: 1rem; }
@@ -24,11 +131,11 @@
     .legend-row { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: .5rem; }
     .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
     .reflex-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin: 1.2rem 0; }
-    .reflex-box { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 12px 14px; text-align: center; }
+    .reflex-box { background: var(--color-background-secondary); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 12px 14px; text-align: center; }
     .reflex-box .rb-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .04em; }
     .reflex-box .rb-val { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
     .arrow-box { text-align: center; font-size: 22px; color: var(--color-text-secondary); }
-    .info-box { background: var(--color-background-info); border: 0.5px solid var(--color-border-info); border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 13px; color: var(--color-text-info); margin-bottom: 1rem; line-height: 1.5; }
+    .info-box { background: var(--color-background-info); border: 1px solid var(--color-border-info); border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 13px; color: var(--color-text-info); margin-bottom: 1rem; line-height: 1.5; }
     .hab-legend { display: flex; gap: 8px; margin-bottom: .5rem; flex-wrap: wrap; }
     .hab-tag { font-size: 12px; padding: 3px 10px; border-radius: var(--border-radius-md); font-weight: 500; }
     </style>
@@ -47,7 +154,7 @@
         <div class="section-sub">Um reflexo é uma relação condicional entre estímulo (mudança no ambiente) e resposta (mudança no organismo). Selecione um reflexo para visualizar essa relação.</div>
         <div class="ctrl-row">
           <label>Escolha um reflexo</label>
-          <select id="reflex-sel" onchange="updateReflex()" style="flex:1; padding:6px 10px; border:0.5px solid var(--color-border-secondary); border-radius:var(--border-radius-md); background:var(--color-background-primary); color:var(--color-text-primary); font-size:13px;">
+          <select id="reflex-sel" onchange="updateReflex()">
             <option value="0">Martelo no joelho → extensão da perna</option>
             <option value="1">Luz forte no olho → contração da pupila</option>
             <option value="2">Barulho alto → sobressalto</option>
@@ -87,7 +194,7 @@
         <div class="section-sub">Escolha uma lei para explorar seu mecanismo com o simulador interativo.</div>
         <div class="ctrl-row" style="margin-bottom:1rem;">
           <label>Lei</label>
-          <select id="lei-sel" onchange="updateLei()" style="flex:1; padding:6px 10px; border:0.5px solid var(--color-border-secondary); border-radius:var(--border-radius-md); background:var(--color-background-primary); color:var(--color-text-primary); font-size:13px;">
+          <select id="lei-sel" onchange="updateLei()">
             <option value="int">Lei da intensidade-magnitude</option>
             <option value="lim">Lei do limiar</option>
             <option value="lat">Lei da latência</option>
@@ -114,7 +221,7 @@
         <div class="section-sub">Quando um mesmo estímulo é apresentado repetidamente, a resposta pode diminuir (habituação) ou aumentar (sensibilização). Escolha o processo e o intervalo entre estímulos.</div>
         <div class="ctrl-row">
           <label>Processo</label>
-          <select id="hs-proc" onchange="updateHS()" style="flex:1; padding:6px 10px; border:0.5px solid var(--color-border-secondary); border-radius:var(--border-radius-md); background:var(--color-background-primary); color:var(--color-text-primary); font-size:13px;">
+          <select id="hs-proc" onchange="updateHS()">
             <option value="hab">Habituação (ex: som repetido — 16s intervalo)</option>
             <option value="sens">Sensibilização (ex: som repetido — 2s intervalo)</option>
             <option value="esq">Estudo de Geyer & Braff (1982): esquizofrenia</option>
@@ -132,7 +239,7 @@
         <div class="section-sub">Parte das emoções são respostas reflexas a estímulos ambientais. Selecione uma emoção para ver as respostas fisiológicas envolvidas.</div>
         <div class="ctrl-row">
           <label>Emoção</label>
-          <select id="em-sel" onchange="updateEmo()" style="flex:1; padding:6px 10px; border:0.5px solid var(--color-border-secondary); border-radius:var(--border-radius-md); background:var(--color-background-primary); color:var(--color-text-primary); font-size:13px;">
+          <select id="em-sel" onchange="updateEmo()">
             <option value="medo">Medo</option>
             <option value="susto">Susto (sobressalto)</option>
             <option value="ansiedade">Ansiedade (falar em público)</option>
