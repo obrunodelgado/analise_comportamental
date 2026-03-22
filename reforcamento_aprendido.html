@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reforçamento Aprendido</title>
+</head>
+<body>
+<style>
+:root {
+  --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --color-text-primary: #1a1a2e;
+  --color-text-secondary: #555770;
+  --color-text-info: #1a5fb4;
+  --color-text-success: #1a7d45;
+  --color-text-danger: #c4314b;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f4f5f7;
+  --color-background-info: #e8f0fe;
+  --color-background-success: #e6f4ec;
+  --color-background-warning: #fff4e0;
+  --color-border-secondary: #c4c7cf;
+  --color-border-tertiary: #dcdfe6;
+  --color-border-info: #a8c7f5;
+  --color-border-success: #8dcaaa;
+  --color-border-warning: #e0c68a;
+  --border-radius-md: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); color: var(--color-text-primary); background: var(--color-background-primary); }
+.w { padding: 1rem; max-width: 960px; margin: 0 auto; }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+.nb {
+  padding: 9px 18px;
+  border: 1.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-primary);
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+.nb.on {
+  background: var(--color-text-info);
+  color: #fff;
+  border-color: var(--color-text-info);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(26,95,180,.25);
+}
+.nb:hover:not(.on) {
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  border-color: #a0a4b0;
+  box-shadow: 0 2px 4px rgba(0,0,0,.08);
+}
+.panel { display: none; }
+.panel.on { display: block; }
+.ttl { font-size: 16px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 6px; }
+.sub { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1.2rem; line-height: 1.5; }
+.info { background: var(--color-background-info); border: 1px solid var(--color-border-info); border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 13px; color: var(--color-text-info); margin-bottom: 1rem; line-height: 1.5; }
+.ok { background: var(--color-background-success); border: 1px solid var(--color-border-success); border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 13px; color: var(--color-text-success); margin-bottom: 1rem; line-height: 1.5; }
+.row { display: flex; align-items: center; gap: 12px; margin-bottom: .9rem; }
+.row label { font-size: 13px; color: var(--color-text-secondary); min-width: 180px; font-weight: 500; }
+.row input[type=range] { flex: 1; }
+.row .v { font-size: 13px; font-weight: 600; min-width: 60px; color: var(--color-text-primary); }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 1.2rem; }
+.cards2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 1.2rem; }
+.card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 14px; border: 1px solid var(--color-border-tertiary); }
+.cl { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .04em; }
+.cv { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.cw { position: relative; width: 100%; margin-bottom: .8rem; }
+.cw canvas { width: 100% !important; }
+.leg { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: .5rem; }
+.ld { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+
+.sel {
+  flex: 1;
+  padding: 9px 32px 9px 12px;
+  border: 1.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23555770' d='M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+.sel:hover {
+  border-color: #888ba0;
+  box-shadow: 0 2px 4px rgba(0,0,0,.08);
+}
+.sel:focus {
+  outline: none;
+  border-color: var(--color-text-info);
+  box-shadow: 0 0 0 3px rgba(26,95,180,.15);
+}
+
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-border-tertiary);
+  outline: none;
+  transition: background .15s;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-text-info);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  cursor: pointer;
+  transition: transform .1s;
+}
+input[type=range]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+input[type=range]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-text-info);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  cursor: pointer;
+}
+
+.ctg { display: grid; grid-template-columns: 1fr 36px 1fr; gap: 6px; align-items: center; margin: 1.2rem 0; }
+.cbox { background: var(--color-background-secondary); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 12px; text-align: center; }
+.cbox .cl2 { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
+.cbox .cv2 { font-size: 12px; font-weight: 500; color: var(--color-text-primary); line-height: 1.4; }
+.cbox.hi { background: var(--color-background-info); border-color: var(--color-border-info); }
+.cbox.hi .cl2 { color: var(--color-text-info); }
+.cbox.hi .cv2 { color: var(--color-text-info); }
+.cbox.hs { background: var(--color-background-success); border-color: var(--color-border-success); }
+.cbox.hs .cl2 { color: var(--color-text-success); }
+.cbox.hs .cv2 { color: var(--color-text-success); }
+.arr { text-align: center; font-size: 18px; color: var(--color-text-secondary); }
+
+.steps { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+.step {
+  padding: 7px 14px;
+  border: 1.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s ease;
+  color: var(--color-text-secondary);
+  background: var(--color-background-primary);
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+.step.on {
+  background: var(--color-text-info);
+  color: #fff;
+  border-color: var(--color-text-info);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(26,95,180,.25);
+}
+.step:hover:not(.on) {
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  border-color: #a0a4b0;
+  box-shadow: 0 2px 4px rgba(0,0,0,.08);
+}
+
+.msteps { display: flex; flex-direction: column; gap: 6px; margin: 1rem 0; }
+.mstep {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border-tertiary);
+  background: var(--color-background-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .15s;
+  color: var(--color-text-secondary);
+}
+.mstep:hover { box-shadow: 0 2px 4px rgba(0,0,0,.08); }
+.mstep.done { background: var(--color-background-success); border-color: var(--color-border-success); color: var(--color-text-success); }
+.mstep.active { background: var(--color-background-warning); border-color: var(--color-border-warning); color: #8a6d15; }
+.mbar { flex: 1; height: 8px; background: var(--color-border-tertiary); border-radius: 4px; overflow: hidden; }
+.mfill { height: 100%; border-radius: 4px; transition: width .4s ease; }
+
+@media (max-width: 600px) {
+  .w { padding: 0.75rem 0.5rem; }
+
+  .nav { gap: 6px; }
+  .nb { padding: 7px 12px; font-size: 12px; }
+
+  .ttl { font-size: 15px; }
+  .sub { font-size: 12px; }
+
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .row label { min-width: unset; font-size: 12px; }
+  .row .v { min-width: unset; text-align: right; }
+
+  .cards { grid-template-columns: 1fr; gap: 8px; }
+  .cards2 { grid-template-columns: 1fr; gap: 8px; }
+  .cv { font-size: 17px; }
+
+  .info, .ok { font-size: 12px; padding: 8px 10px; }
+
+  .cw { height: 200px !important; }
+
+  .leg { font-size: 11px; gap: 8px; }
+
+  .sel { font-size: 12px; padding: 8px 28px 8px 10px; }
+
+  .ctg { grid-template-columns: 1fr; gap: 6px; }
+  .arr { transform: rotate(90deg); font-size: 16px; padding: 2px 0; }
+  .cbox .cv2 { font-size: 11px; }
+
+  .steps { gap: 6px; }
+  .step { padding: 5px 10px; font-size: 11px; }
+
+  .mstep { padding: 6px 10px; font-size: 11px; gap: 8px; }
+  .mstep span:first-child { min-width: 16px; font-size: 11px; }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .cards { grid-template-columns: repeat(2, 1fr); }
+  .row label { min-width: 150px; }
+}
+</style>
+    
+    <div class="w">
+    <div class="nav">
+      <button class="nb on" onclick="show('ct')">Contingência operante</button>
+      <button class="nb" onclick="show('ext')">Extinção operante</button>
+      <button class="nb" onclick="show('mod')">Modelagem</button>
+      <button class="nb" onclick="show('rf')">Tipos de reforçador</button>
+      <button class="nb" onclick="show('gs')">Reforço social</button>
+    </div>
+    
+    <!-- CONTINGÊNCIA -->
+    <div id="panel-ct" class="panel on">
+      <div class="ttl">Contingência de reforçamento (R → C)</div>
+      <div class="sub">O comportamento operante produz consequências que alteram sua probabilidade futura. Explore como o número de reforçamentos aumenta a frequência do comportamento-alvo e reduz os demais.</div>
+      <div class="row"><label>Exemplo</label>
+        <select class="sel" id="ct-sel" onchange="updateCT()">
+          <option value="0">Rato pressiona barra → recebe água</option>
+          <option value="1">Criança faz birra → ganha doce</option>
+          <option value="2">Estudante faz pergunta → professor responde</option>
+          <option value="3">Bebê diz "mã" → mãe acaricia e sorri</option>
+          <option value="4">Funcionário conclui tarefa → recebe elogio</option>
+        </select>
+      </div>
+      <div class="ctg" id="ct-diag"></div>
+      <div id="ct-info" class="info"></div>
+      <div class="row"><label>Nº de reforçamentos</label><input type="range" min="0" max="50" value="20" step="1" id="ct-n" oninput="updateCT()"><span class="v" id="ct-n-v">20</span></div>
+      <div class="cards" id="ct-cards"></div>
+      <div class="cw" style="height:220px"><canvas id="chart-ct"></canvas></div>
+      <div class="leg"><span><span class="ld" style="background:#378ADD"></span>Comportamento reforçado</span><span><span class="ld" style="background:#888780"></span>Outros comportamentos</span></div>
+    </div>
+    
+    <!-- EXTINÇÃO -->
+    <div id="panel-ext" class="panel">
+      <div class="ttl">Extinção operante e seus efeitos</div>
+      <div class="sub">Quando o reforçamento é suspenso, a frequência cai até o nível operante — mas antes ocorrem 3 efeitos. O histórico de reforçamentos afeta o tamanho do burst e a resistência à extinção.</div>
+      <div class="row"><label>Exemplo</label>
+        <select class="sel" id="ext-sel" onchange="updateExt()">
+          <option value="0">Criança chora → pais retornam ao quarto (Williams, 1958)</option>
+          <option value="1">Rato pressiona barra → água</option>
+          <option value="2">Ex-namorado liga → ex-namorada atende</option>
+        </select>
+      </div>
+      <div class="row"><label>Frequência pré-extinção</label><input type="range" min="20" max="100" value="70" step="1" id="ext-pre" oninput="updateExt()"><span class="v" id="ext-pre-v">70</span></div>
+      <div class="row"><label>Histórico de reforçamentos</label><input type="range" min="5" max="100" value="40" step="1" id="ext-hist" oninput="updateExt()"><span class="v" id="ext-hist-v">40</span></div>
+      <div class="steps" id="ext-steps"></div>
+      <div id="ext-info" class="info"></div>
+      <div class="cards" id="ext-cards"></div>
+      <div class="cw" style="height:260px"><canvas id="chart-ext"></canvas></div>
+      <div class="leg" id="ext-leg"></div>
+    </div>
+    
+    <!-- MODELAGEM -->
+    <div id="panel-mod" class="panel">
+      <div class="ttl">Modelagem: reforçamento diferencial de aproximações sucessivas</div>
+      <div class="sub">Novos comportamentos são construídos passo a passo. Clique em cada etapa para reforçá-la e avançar para a próxima.</div>
+      <div class="row"><label>Comportamento-alvo</label>
+        <select class="sel" id="mod-sel" onchange="initMod()">
+          <option value="0">Bebê aprender a dizer "mamãe"</option>
+          <option value="1">Rato pressionar a barra na caixa de Skinner</option>
+          <option value="2">Criança aprender a escrever a letra "A"</option>
+          <option value="3">Adulto aprender a tocar uma nota no violão</option>
+        </select>
+      </div>
+      <div id="mod-info" class="info"></div>
+      <div class="msteps" id="mod-steps"></div>
+      <div id="mod-ok" class="ok" style="display:none"></div>
+      <div class="cw" style="height:200px;margin-top:1rem"><canvas id="chart-mod"></canvas></div>
+      <div class="leg"><span><span class="ld" style="background:#1D9E75"></span>Proximidade ao comportamento-alvo (%)</span></div>
+    </div>
+    
+    <!-- TIPOS DE REFORÇADOR -->
+    <div id="panel-rf" class="panel">
+      <div class="ttl">Tipos de consequência e seus efeitos</div>
+      <div class="sub">O mesmo comportamento pode ser afetado por diferentes tipos de consequência. Compare como cada contingência altera a frequência do comportamento.</div>
+      <div class="row"><label>Comportamento</label>
+        <select class="sel" id="rf-sel" onchange="updateRF()">
+          <option value="0">Estudar para a prova</option>
+          <option value="1">Fazer birra</option>
+          <option value="2">Usar protetor solar</option>
+          <option value="3">Dirigir acima da velocidade</option>
+        </select>
+      </div>
+      <div id="rf-info" class="info"></div>
+      <div class="cards2" id="rf-cards"></div>
+      <div class="cw" style="height:240px"><canvas id="chart-rf"></canvas></div>
+      <div class="leg"><span><span class="ld" style="background:#1D9E75"></span>Reforç. positivo</span><span><span class="ld" style="background:#378ADD"></span>Reforç. negativo</span><span><span class="ld" style="background:#888780"></span>Extinção</span><span><span class="ld" style="background:#D85A30"></span>Punição</span></div>
+    </div>
+    
+    <!-- REFORÇO SOCIAL -->
+    <div id="panel-gs" class="panel">
+      <div class="ttl">Reforçamento social: estudo de Greenspoon (1955)</div>
+      <div class="sub">Vocalizações sutis do experimentador ("mmm-hmm" vs "huh-uh") controlaram o comportamento verbal dos participantes — sem que a maioria percebesse.</div>
+      <div class="row"><label>Grupo</label>
+        <select class="sel" id="gs-sel" onchange="updateGS()">
+          <option value="0">Grupo I: plural + "mmm-hmm" (reforçador)</option>
+          <option value="1">Grupo II: plural + "huh-uh" (punitivo)</option>
+          <option value="2">Grupo III: singular + "mmm-hmm"</option>
+          <option value="3">Grupo controle: sem vocalização</option>
+        </select>
+      </div>
+      <div id="gs-info" class="info"></div>
+      <div class="cards" id="gs-cards"></div>
+      <div class="cw" style="height:240px"><canvas id="chart-gs"></canvas></div>
+      <div class="leg"><span><span class="ld" style="background:#378ADD"></span>Fase de consequenciação (25 min)</span><span><span class="ld" style="background:#888780"></span>Fase de extinção (25 min)</span></div>
+    </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <script>
+    let charts={};
+    function dstr(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+    
+    function show(id){
+      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+      document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+      document.getElementById('panel-'+id).classList.add('on');
+      event.target.classList.add('on');
+      ({ct:buildCT,ext:buildExt,mod:initMod,rf:buildRF,gs:buildGS})[id]?.();
+    }
+    
+    // ===== CONTINGÊNCIA =====
+    const ctData=[
+      {r:'Pressionar a barra',c:'Água (SR+)',info:'Reforçamento positivo clássico: R → C. Cada pressão na barra produz água. Quanto mais reforçamentos, maior e mais estável a frequência do comportamento.'},
+      {r:'Fazer birra',c:'Ganhar o doce (SR+)',info:'A criança faz birra e o pai cede. A consequência (receber o doce) aumenta birras futuras. O pai inadvertidamente reforça o comportamento que quer eliminar.'},
+      {r:'Fazer pergunta em aula',c:'Professor responde (SR+ social)',info:'A atenção e resposta do professor são reforçadores sociais para perguntar. Estudantes cujas perguntas são respondidas perguntam mais.'},
+      {r:'Bebê diz "mã"',c:'Mãe acaricia e sorri (SR+ social)',info:'Reforçadores sociais (sorriso, carinho, atenção) moldam o comportamento verbal do bebê — ponto de partida da modelagem da fala.'},
+      {r:'Funcionário conclui tarefa',c:'Elogio do supervisor (SR+ social)',info:'O elogio é reforçador social que mantém a qualidade das tarefas. Reforçadores sociais são poderosos no contexto de trabalho.'}
+    ];
+    let ctChart=null;
+    function updateCT(){
+      const idx=parseInt(document.getElementById('ct-sel').value);
+      const n=parseInt(document.getElementById('ct-n').value);
+      document.getElementById('ct-n-v').textContent=n;
+      const d=ctData[idx];
+      document.getElementById('ct-diag').innerHTML=`<div class="cbox hi"><div class="cl2">Resposta (R)</div><div class="cv2">${d.r}</div></div><div class="arr">→</div><div class="cbox hs"><div class="cl2">Consequência (C)</div><div class="cv2">${d.c}</div></div>`;
+      document.getElementById('ct-info').textContent=d.info;
+      const freq=Math.round(Math.min(95,10+n*1.7));
+      const outros=Math.round(Math.max(5,50-n*0.8));
+      document.getElementById('ct-cards').innerHTML=`
+        <div class="card"><div class="cl">Frequência atual</div><div class="cv">${freq}%</div></div>
+        <div class="card"><div class="cl">Outros comportamentos</div><div class="cv">${outros}%</div></div>
+        <div class="card"><div class="cl">Efeito</div><div class="cv">${n<10?'Fraco':n<30?'Moderado':'Forte'}</div></div>`;
+      if(ctChart){
+        const xs=Array.from({length:n+1},(_,i)=>i);
+        ctChart.data.labels=xs.map(x=>x%5===0?x:'');
+        ctChart.data.datasets[0].data=xs.map(x=>Math.round(Math.min(95,10+x*1.7)));
+        ctChart.data.datasets[1].data=xs.map(x=>Math.round(Math.max(5,50-x*0.8)));
+        ctChart.update('none');
+      }
+    }
+    function buildCT(){
+      dstr('ct');
+      const ctx=document.getElementById('chart-ct').getContext('2d');
+      ctChart=new Chart(ctx,{type:'line',data:{labels:[],datasets:[
+        {label:'Reforçado',data:[],borderColor:'#378ADD',backgroundColor:'#378ADD18',tension:.4,pointRadius:0,fill:true},
+        {label:'Outros',data:[],borderColor:'#888780',backgroundColor:'#88878018',tension:.4,pointRadius:0,fill:true,borderDash:[4,3]}
+      ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        x:{ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Número de reforçamentos',color:'#888',font:{size:11}}},
+        y:{min:0,max:100,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Frequência relativa (%)',color:'#888',font:{size:11}}}
+      }}});
+      charts['ct']=ctChart; updateCT();
+    }
+    
+    // ===== EXTINÇÃO =====
+    let extStep=0, extChart=null;
+    const extExDesc=[
+      'Williams (1958): suspender o retorno dos pais fez o choro da criança diminuir ao longo de 10 noites. Arraste o histórico e veja como ele muda o burst e a duração da extinção.',
+      'Suspender a água faz o rato inicialmente pressionar mais a barra (burst), depois diminuir progressivamente. Histórico alto = maior resistência.',
+      'Deixar de atender as ligações faz o ex ligar mais vezes no início (burst), depois desistir. O histórico de reforçamentos determina por quanto tempo insiste.'
+    ];
+    function getPre(){return parseInt(document.getElementById('ext-pre').value);}
+    function getHist(){return parseInt(document.getElementById('ext-hist').value);}
+    
+    function genExtData(step,pre,hist){
+      const burst=Math.round(pre*(1.15+hist/180));
+      const resist=Math.max(6,Math.round(hist*0.28));
+      const total=Math.min(resist+7,32);
+      if(step===0){
+        return Array.from({length:total},(_,i)=>i===0?pre:Math.round(Math.max(5,pre*Math.pow(0.80,i))));
+      }
+      if(step===1){
+        return Array.from({length:total},(_,i)=>{
+          if(i===0) return pre;
+          if(i===1) return burst;
+          if(i===2) return Math.round(burst*0.80);
+          return Math.round(Math.max(5,pre*Math.pow(0.76,i-1)));
+        });
+      }
+      if(step===2){
+        return {
+          a:Array.from({length:total},(_,i)=>Math.round(Math.max(0,pre*Math.pow(0.78,i)))),
+          b:Array.from({length:total},(_,i)=>i===0?0:i===1?Math.round(pre*0.42):i===2?Math.round(pre*0.58):Math.round(Math.max(0,pre*0.58*Math.pow(0.70,i-2)))),
+          c:Array.from({length:total},(_,i)=>i<2?0:i===2?Math.round(pre*0.22):i===3?Math.round(pre*0.32):Math.round(Math.max(0,pre*0.32*Math.pow(0.68,i-3))))
+        };
+      }
+      return {
+        comp:Array.from({length:total},(_,i)=>Math.round(Math.max(5,pre*Math.pow(0.80,i)))),
+        emoc:Array.from({length:total},(_,i)=>{
+          if(i===0) return 0;
+          if(i===1) return Math.round(pre*0.65);
+          if(i===2) return Math.round(pre*0.82);
+          if(i===3) return Math.round(pre*0.58);
+          return Math.round(Math.max(0,pre*0.58*Math.pow(0.62,i-3)));
+        })
+      };
+    }
+    
+    function updateExt(){
+      const pre=getPre(), hist=getHist();
+      document.getElementById('ext-pre-v').textContent=pre;
+      document.getElementById('ext-hist-v').textContent=hist;
+      const burst=Math.round(pre*(1.15+hist/180));
+      const resist=Math.max(6,Math.round(hist*0.28));
+      document.getElementById('ext-steps').innerHTML=
+        ['Processo geral','Burst inicial (efeito 1)','Variação topográfica (efeito 2)','Respostas emocionais (efeito 3)']
+        .map((t,i)=>`<button class="step${extStep===i?' on':''}" onclick="setExtStep(${i})">${t}</button>`).join('');
+      const infos=[
+        `Frequência cai gradualmente até ~5 (nível operante). Com histórico de ${hist} reforçamentos, a resistência é de ~${resist} períodos antes de cessar. Arraste o slider de histórico para ver a diferença.`,
+        `Burst de extinção: frequência sobe de ${pre} para ~${burst} logo que o reforçamento cessa, antes de cair. Quanto maior o histórico (${hist}), maior e mais longo o burst. Compare os extremos do slider!`,
+        `Variação topográfica: a forma da resposta original (azul) diminui, mas surgem novas topografias (verde e âmbar) que também se extinguem em seguida. Ex: além de tocar a campainha, a pessoa começa a bater na porta e chamar pelo nome.`,
+        `Respostas emocionais (laranja): surgem logo no início da extinção e atingem o pico antes de diminuir. O rato morde a barra; a criança chuta o chão; a pessoa joga o celular. Pré-extinção alta (${pre}) = pico emocional mais intenso.`
+      ];
+      document.getElementById('ext-info').textContent=infos[extStep];
+      const cardSets=[
+        [{l:'Freq. pré-extinção',v:pre},{l:'Resistência à ext.',v:resist+' períodos'},{l:'Nível operante',v:'~5'}],
+        [{l:'Burst máximo',v:burst},{l:'Resistência',v:resist+' períodos'},{l:'Histórico',v:hist+' reforç.'}],
+        [{l:'Topografias novas',v:'2 variantes'},{l:'Freq. original',v:pre},{l:'Todas se extinguem',v:'Sim'}],
+        [{l:'Freq. pré-extinção',v:pre},{l:'Pico emocional',v:Math.round(pre*0.82)},{l:'Dur. resp. emocional',v:Math.round(resist*0.55)+' períodos'}]
+      ];
+      document.getElementById('ext-cards').innerHTML=cardSets[extStep].map(c=>`<div class="card"><div class="cl">${c.l}</div><div class="cv">${c.v}</div></div>`).join('');
+      rebuildExtChart(pre,hist);
+    }
+    function setExtStep(i){extStep=i;updateExt();}
+    function rebuildExtChart(pre,hist){
+      if(extChart){extChart.destroy();extChart=null;}
+      const ctx=document.getElementById('chart-ext').getContext('2d');
+      const data=genExtData(extStep,pre,hist);
+      const resist=Math.max(6,Math.round(hist*0.28));
+      const total=Math.min(resist+7,32);
+      const labels=Array.from({length:total},(_,i)=>i===0?'Último reforç.':i===1?'Extinção inicia':i%4===0?'T'+i:'');
+      const baseOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        x:{ticks:{color:'#888',font:{size:10},maxRotation:0,autoSkip:false},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Tempo / sessões',color:'#888',font:{size:11}}},
+        y:{min:0,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Frequência do comportamento',color:'#888',font:{size:11}}}
+      }};
+      if(extStep===0||extStep===1){
+        extChart=new Chart(ctx,{type:'line',data:{labels,datasets:[
+          {label:'Comportamento',data:Array.isArray(data)?data:[],borderColor:'#378ADD',backgroundColor:'#378ADD18',tension:.3,
+            pointRadius:Array.isArray(data)?data.map((_,i)=>i===1&&extStep===1?7:3):[],
+            pointBackgroundColor:Array.isArray(data)?data.map((_,i)=>i===1&&extStep===1?'#D85A30':'#378ADD'):[],fill:true},
+          {label:'Nível operante',data:Array(total).fill(5),borderColor:'#D85A30',borderDash:[5,3],pointRadius:0,tension:0}
+        ]},options:baseOpts});
+        document.getElementById('ext-leg').innerHTML=`<span><span class="ld" style="background:#378ADD"></span>Frequência do comportamento</span><span><span class="ld" style="background:#D85A30"></span>Nível operante</span>`;
+      } else if(extStep===2){
+        extChart=new Chart(ctx,{type:'line',data:{labels,datasets:[
+          {label:'Topografia A (original)',data:data.a,borderColor:'#378ADD',tension:.3,pointRadius:2,fill:false},
+          {label:'Topografia B (nova)',data:data.b,borderColor:'#1D9E75',tension:.3,pointRadius:2,fill:false,borderDash:[6,3]},
+          {label:'Topografia C (nova)',data:data.c,borderColor:'#BA7517',tension:.3,pointRadius:2,fill:false,borderDash:[3,4]}
+        ]},options:baseOpts});
+        document.getElementById('ext-leg').innerHTML=`<span><span class="ld" style="background:#378ADD"></span>Topografia original (diminui)</span><span><span class="ld" style="background:#1D9E75"></span>Nova topografia B</span><span><span class="ld" style="background:#BA7517"></span>Nova topografia C</span>`;
+      } else {
+        extChart=new Chart(ctx,{type:'line',data:{labels,datasets:[
+          {label:'Comportamento-alvo',data:data.comp,borderColor:'#378ADD',backgroundColor:'#378ADD18',tension:.3,pointRadius:2,fill:true},
+          {label:'Respostas emocionais',data:data.emoc,borderColor:'#D85A30',backgroundColor:'#D85A3020',tension:.3,pointRadius:2,fill:true,borderDash:[5,3]}
+        ]},options:baseOpts});
+        document.getElementById('ext-leg').innerHTML=`<span><span class="ld" style="background:#378ADD"></span>Comportamento-alvo em extinção</span><span><span class="ld" style="background:#D85A30"></span>Respostas emocionais (raiva, frustração)</span>`;
+      }
+      charts['ext']=extChart;
+    }
+    function buildExt(){extStep=0;updateExt();}
+    
+    // ===== MODELAGEM =====
+    const modData=[
+      {info:'A mãe reforça aproximações sucessivas ao som "mamãe", extinguindo topografias anteriores à medida que o bebê avança.',
+       steps:['Qualquer vocalização ("gu","bê","ê")','Som próximo a "mã"','"Mã" consistente','"Mãmã" (repetição)','Variações de "mamãe"','"Mamãe" correto'],pct:[10,30,50,68,85,100]},
+      {info:'O experimentador reforça movimentos que se aproximam progressivamente da pressão à barra, extinguindo cada etapa ao avançar.',
+       steps:['Qualquer movimento em direção à barra','Aproximar do lado da barra','Tocar a barra com qualquer parte','Apoiar a pata na barra','Pressionar levemente','Pressionar completamente'],pct:[10,28,48,66,83,100]},
+      {info:'O professor reforça traços que se aproximam da letra "A", exigindo cada vez mais precisão topográfica.',
+       steps:['Segurar o lápis corretamente','Traçar uma linha vertical','Traçar duas linhas inclinadas','Fechar o ângulo superior','Adicionar o traço horizontal','Letra "A" completa e legível'],pct:[12,28,46,65,82,100]},
+      {info:'Reforçamento diferencial de aproximações ao posicionamento correto dos dedos para produzir uma nota limpa.',
+       steps:['Segurar o violão na posição certa','Posicionar a mão no braço','Colocar dedo na corda (qualquer casa)','Pressionar na casa correta','Dedilhar com a mão direita','Produzir a nota limpa e no tempo'],pct:[10,26,45,64,82,100]}
+    ];
+    let modState=[], modChart=null;
+    function initMod(){
+      const idx=parseInt(document.getElementById('mod-sel').value);
+      document.getElementById('mod-info').textContent=modData[idx].info;
+      modState=modData[idx].steps.map(()=>false);
+      renderMod();
+      buildModChart();
+    }
+    function renderMod(){
+      const idx=parseInt(document.getElementById('mod-sel').value);
+      const d=modData[idx];
+      const next=modState.findIndex(v=>!v);
+      const allDone=modState.every(Boolean);
+      document.getElementById('mod-steps').innerHTML=d.steps.map((s,i)=>{
+        const done=modState[i], active=i===next&&!allDone;
+        return `<div class="${done?'mstep done':active?'mstep active':'mstep'}" onclick="modClick(${i})">
+          <span style="min-width:20px;font-size:12px;font-weight:500">${i+1}</span>
+          <span style="flex:1">${s}</span>
+          <div class="mbar"><div class="mfill" style="width:${done?d.pct[i]:active?d.pct[i]*0.5:0}%;background:${done?'#1D9E75':active?'#BA7517':'#378ADD'}"></div></div>
+          <span style="min-width:40px;text-align:right;font-size:12px">${done?'✓ '+d.pct[i]+'%':active?'Ativo':'—'}</span>
+        </div>`;
+      }).join('');
+      const ok=document.getElementById('mod-ok');
+      if(allDone){ok.style.display='block';ok.textContent='Comportamento-alvo atingido! O novo comportamento agora faz parte do repertório do organismo.';}
+      else ok.style.display='none';
+      if(modChart){
+        modChart.data.datasets[0].data=d.steps.map((_,i)=>modState[i]?d.pct[i]:null);
+        modChart.update('none');
+      }
+    }
+    function modClick(i){
+      if(i!==modState.findIndex(v=>!v))return;
+      modState[i]=true; renderMod();
+    }
+    function buildModChart(){
+      dstr('mod');
+      const idx=parseInt(document.getElementById('mod-sel').value);
+      const d=modData[idx];
+      const ctx=document.getElementById('chart-mod').getContext('2d');
+      modChart=new Chart(ctx,{type:'bar',data:{labels:d.steps.map((_,i)=>'Etapa '+(i+1)),datasets:[{label:'Proximidade (%)',data:d.steps.map(()=>null),backgroundColor:d.pct.map(v=>`rgba(29,158,117,${0.3+v/100*0.65})`),borderColor:'#1D9E75',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888',font:{size:11}},grid:{color:'rgba(128,128,128,.07)'}},y:{min:0,max:110,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Proximidade ao comportamento-alvo (%)',color:'#888',font:{size:11}}}}}});
+      charts['mod']=modChart;
+    }
+    
+    // ===== TIPOS DE REFORÇADOR =====
+    const rfData=[
+      {info:'Estudar pode ser reforçado positivamente (boa nota), negativamente (evitar reprovar) ou extinto (nota igual sem esforço).',
+       cards:[{l:'Reforç. positivo',v:'Boa nota → estudo aumenta',c:'#1D9E75'},{l:'Reforç. negativo',v:'Evitar reprovar → estudo aumenta',c:'#378ADD'},{l:'Extinção',v:'Nota igual sem esforço → estudo cai',c:'#888780'},{l:'Resultado',v:'Depende da contingência vigente',c:'#BA7517'}],data:[90,80,15,55]},
+      {info:'Birra reforçada positivamente quando a criança recebe o que quer. Extinção (Williams, 1958) reduz a frequência.',
+       cards:[{l:'Reforç. positivo',v:'Ganha o doce → birra aumenta',c:'#1D9E75'},{l:'Reforç. negativo',v:'Pais cedem → birra aumenta',c:'#378ADD'},{l:'Extinção',v:'Pais ignoram → birra diminui',c:'#888780'},{l:'Resultado',v:'Depende da consistência dos pais',c:'#BA7517'}],data:[95,85,10,50]},
+      {info:'Protetor solar é mantido por reforçamento negativo — evita queimaduras (estímulo aversivo). A consequência é a remoção de algo ruim.',
+       cards:[{l:'Reforç. negativo',v:'Evita queimadura → uso aumenta',c:'#378ADD'},{l:'Extinção',v:'Sem queimadura sem protetor → uso cai',c:'#888780'},{l:'Punição positiva',v:'Protetor incomoda → uso diminui',c:'#D85A30'},{l:'Resultado',v:'Mantido por reforçamento negativo',c:'#BA7517'}],data:[85,20,15,70]},
+      {info:'Velocidade alta: reforçada (chegar mais rápido) e punida (multa). A punição reduz a frequência se aplicada consistentemente.',
+       cards:[{l:'Reforç. positivo',v:'Chega mais rápido → velocidade aumenta',c:'#1D9E75'},{l:'Reforç. negativo',v:'Evita atrasos → velocidade aumenta',c:'#378ADD'},{l:'Punição positiva',v:'Multa → velocidade diminui',c:'#D85A30'},{l:'Resultado',v:'Depende da frequência das multas',c:'#BA7517'}],data:[80,70,20,40]}
+    ];
+    let rfChart=null;
+    function updateRF(){
+      const idx=parseInt(document.getElementById('rf-sel').value);
+      const d=rfData[idx];
+      document.getElementById('rf-info').textContent=d.info;
+      document.getElementById('rf-cards').innerHTML=d.cards.map(c=>`<div class="card"><div class="cl" style="color:${c.c}">${c.l}</div><div class="cv" style="font-size:13px;margin-top:4px">${c.v}</div></div>`).join('');
+      if(rfChart){
+        rfChart.data.labels=d.cards.map(c=>c.l);
+        rfChart.data.datasets[0].data=d.data;
+        rfChart.data.datasets[0].backgroundColor=d.cards.map(c=>c.c+'55');
+        rfChart.data.datasets[0].borderColor=d.cards.map(c=>c.c);
+        rfChart.update('none');
+      }
+    }
+    function buildRF(){
+      dstr('rf');
+      const ctx=document.getElementById('chart-rf').getContext('2d');
+      rfChart=new Chart(ctx,{type:'bar',data:{labels:[],datasets:[{label:'Frequência (%)',data:[],backgroundColor:[],borderColor:[],borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888',font:{size:11}},grid:{color:'rgba(128,128,128,.07)'}},y:{min:0,max:110,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Frequência relativa do comportamento (%)',color:'#888',font:{size:11}}}}}});
+      charts['rf']=rfChart; updateRF();
+    }
+    
+    // ===== GREENSPOON =====
+    const gsData=[
+      {info:'Grupo I: "mmm-hmm" após palavras no plural. Frequência de plurais aumentou nos 25 min de reforçamento e caiu na extinção (sem vocalização).',
+       d1:Array.from({length:25},(_,i)=>Math.round(20+i*1.8+(Math.sin(i)*2))),
+       d2:Array.from({length:25},(_,i)=>Math.round(65-i*1.5+(Math.sin(i)*2))),
+       c1:'Palavras no plural',c2:'Fase reforçamento',c3:'Fase extinção'},
+      {info:'Grupo II: "huh-uh" após palavras no plural (punitivo). Frequência de plurais diminuiu durante os 25 min e permaneceu baixa na extinção.',
+       d1:Array.from({length:25},(_,i)=>Math.round(45-i*1.2+(Math.sin(i)*1.5))),
+       d2:Array.from({length:25},(_,i)=>Math.round(20-i*0.3+(Math.sin(i)*1.5))),
+       c1:'Palavras no plural',c2:'Fase punição',c3:'Fase extinção'},
+      {info:'Grupo III: "mmm-hmm" após palavras no singular. Plurais diminuíram (o reforço era para singular) — demonstrando especificidade das contingências.',
+       d1:Array.from({length:25},(_,i)=>Math.round(38+i*0.8+(Math.sin(i)*2))),
+       d2:Array.from({length:25},(_,i)=>Math.round(48-i*0.9+(Math.sin(i)*2))),
+       c1:'Palavras no singular',c2:'Fase reforçamento',c3:'Fase extinção'},
+      {info:'Grupo controle: sem vocalização. Frequência estável ao longo dos 50 min — confirmando que as mudanças nos outros grupos eram efeito das vocalizações.',
+       d1:Array.from({length:25},(_,i)=>Math.round(35+(Math.sin(i)*2))),
+       d2:Array.from({length:25},(_,i)=>Math.round(34+(Math.sin(i)*2))),
+       c1:'Palavras no plural',c2:'Primeira metade',c3:'Segunda metade'}
+    ];
+    let gsChart=null;
+    function updateGS(){
+      const idx=parseInt(document.getElementById('gs-sel').value);
+      const d=gsData[idx];
+      document.getElementById('gs-info').textContent=d.info;
+      const m1=Math.round(d.d1.reduce((a,b)=>a+b,0)/25);
+      const m2=Math.round(d.d2.reduce((a,b)=>a+b,0)/25);
+      document.getElementById('gs-cards').innerHTML=`
+        <div class="card"><div class="cl">${d.c1}</div><div class="cv" style="font-size:14px">Alvo</div></div>
+        <div class="card"><div class="cl">${d.c2}</div><div class="cv">${m1}/min</div></div>
+        <div class="card"><div class="cl">${d.c3}</div><div class="cv">${m2}/min</div></div>`;
+      if(gsChart){
+        gsChart.data.labels=[...d.d1.map((_,i)=>(i+1)%5===0?'Min '+(i+1):''),...d.d2.map((_,i)=>(i+1)%5===0?'Min '+(i+26):'')];
+        gsChart.data.datasets[0].data=[...d.d1,...Array(25).fill(null)];
+        gsChart.data.datasets[1].data=[...Array(25).fill(null),...d.d2];
+        gsChart.update('none');
+      }
+    }
+    function buildGS(){
+      dstr('gs');
+      const ctx=document.getElementById('chart-gs').getContext('2d');
+      gsChart=new Chart(ctx,{type:'line',data:{labels:[],datasets:[
+        {label:'Fase 1',data:[],borderColor:'#378ADD',backgroundColor:'#378ADD18',tension:.3,pointRadius:1,fill:true,spanGaps:false},
+        {label:'Fase 2',data:[],borderColor:'#888780',backgroundColor:'#88878018',tension:.3,pointRadius:1,fill:true,borderDash:[4,3],spanGaps:false}
+      ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        x:{ticks:{color:'#888',font:{size:10}},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Minutos da sessão (50 min total)',color:'#888',font:{size:11}}},
+        y:{min:0,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Frequência de palavras-alvo',color:'#888',font:{size:11}}}
+      }}});
+      charts['gs']=gsChart; updateGS();
+    }
+    
+    window.addEventListener('load',()=>buildCT());
+    </script>
+</body>
+</html>
+    
