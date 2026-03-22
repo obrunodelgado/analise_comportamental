@@ -243,7 +243,58 @@ input[type=range]::-moz-range-thumb {
   .cards { grid-template-columns: repeat(2, 1fr); }
   .row label { min-width: 150px; }
 }
+.topnav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 1rem;
+  max-width: 960px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--color-border-tertiary);
+  margin-bottom: 4px;
+}
+.topnav-home {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  padding: 5px 10px;
+  border-radius: var(--border-radius-md);
+  transition: background .15s;
+}
+.topnav-home:hover { background: var(--color-background-secondary); }
+.topnav-sep { color: var(--color-border-secondary); font-size: 14px; }
+.topnav a.tn {
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 5px 12px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid transparent;
+  transition: all .15s;
+}
+.topnav a.tn:hover { background: var(--color-background-secondary); }
+.topnav a.tn.t1 { color: #1D9E75; }
+.topnav a.tn.t2 { color: #378ADD; }
+.topnav a.tn.t3 { color: #BA7517; }
+.topnav a.tn.t4 { color: #D85A30; }
+.topnav a.tn.cur { font-weight: 700; border-color: currentColor; background: color-mix(in srgb, currentColor 8%, transparent); }
+@media (max-width: 600px) {
+  .topnav { padding: 8px 0.5rem; gap: 4px; }
+  .topnav-home { font-size: 12px; padding: 4px 8px; }
+  .topnav a.tn { font-size: 11px; padding: 4px 8px; }
+}
 </style>
+
+    <nav class="topnav">
+      <a href="index.html" class="topnav-home">Inicio</a>
+      <span class="topnav-sep">|</span>
+      <a href="reflexo_inato.html" class="tn t1">Reflexo inato</a>
+      <a href="reflexo_aprendido.html" class="tn t2">Reflexo aprendido</a>
+      <a href="reforcamento_aprendido.html" class="tn t3 cur">Reforçamento</a>
+      <a href="controle_aversivo.html" class="tn t4">Controle aversivo</a>
+    </nav>
     
     <div class="w">
     <div class="nav">
@@ -484,9 +535,10 @@ input[type=range]::-moz-range-thumb {
       const resist=Math.max(6,Math.round(hist*0.28));
       const total=Math.min(resist+7,32);
       const labels=Array.from({length:total},(_,i)=>i===0?'Último reforç.':i===1?'Extinção inicia':i%4===0?'T'+i:'');
+      const yMax=extStep===1?200:120;
       const baseOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
         x:{ticks:{color:'#888',font:{size:10},maxRotation:0,autoSkip:false},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Tempo / sessões',color:'#888',font:{size:11}}},
-        y:{min:0,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Frequência do comportamento',color:'#888',font:{size:11}}}
+        y:{min:0,max:yMax,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Frequência do comportamento',color:'#888',font:{size:11}}}
       }};
       if(extStep===0||extStep===1){
         extChart=new Chart(ctx,{type:'line',data:{labels,datasets:[

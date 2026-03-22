@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle Aversivo</title>
+</head>
+<body>
+<style>
+:root {
+  --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --color-text-primary: #1a1a2e;
+  --color-text-secondary: #555770;
+  --color-text-info: #1a5fb4;
+  --color-text-success: #1a7d45;
+  --color-text-danger: #c4314b;
+  --color-text-warning: #8a6d15;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f4f5f7;
+  --color-background-info: #e8f0fe;
+  --color-background-success: #e6f4ec;
+  --color-background-danger: #fdedef;
+  --color-background-warning: #fff4e0;
+  --color-border-secondary: #c4c7cf;
+  --color-border-tertiary: #dcdfe6;
+  --color-border-info: #a8c7f5;
+  --color-border-success: #8dcaaa;
+  --color-border-danger: #f0a0ad;
+  --color-border-warning: #e0c68a;
+  --border-radius-md: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); color: var(--color-text-primary); background: var(--color-background-primary); }
+.w { padding: 1rem; max-width: 960px; margin: 0 auto; }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+.nb {
+  padding: 9px 18px;
+  border: 1.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-primary);
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+.nb.on {
+  background: var(--color-text-info);
+  color: #fff;
+  border-color: var(--color-text-info);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(26,95,180,.25);
+}
+.nb:hover:not(.on) {
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  border-color: #a0a4b0;
+  box-shadow: 0 2px 4px rgba(0,0,0,.08);
+}
+.panel { display: none; }
+.panel.on { display: block; }
+.ttl { font-size: 16px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 6px; }
+.sub { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1.2rem; line-height: 1.5; }
+.info { background: var(--color-background-info); border: 1px solid var(--color-border-info); border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 13px; color: var(--color-text-info); margin-bottom: 1rem; line-height: 1.5; }
+.ok { background: var(--color-background-success); border: 1px solid var(--color-border-success); border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 13px; color: var(--color-text-success); margin-bottom: 1rem; line-height: 1.5; }
+.row { display: flex; align-items: center; gap: 12px; margin-bottom: .9rem; }
+.row label { font-size: 13px; color: var(--color-text-secondary); min-width: 175px; font-weight: 500; }
+.row input[type=range] { flex: 1; }
+.row .v { font-size: 13px; font-weight: 600; min-width: 60px; color: var(--color-text-primary); }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 1.2rem; }
+.cards4 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 1.2rem; }
+.card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 14px; border: 1px solid var(--color-border-tertiary); }
+.cl { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .04em; }
+.cv { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+.cw { position: relative; width: 100%; margin-bottom: .8rem; }
+.cw canvas { width: 100% !important; }
+.leg { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: .5rem; }
+.ld { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+
+.sel {
+  flex: 1;
+  padding: 9px 32px 9px 12px;
+  border: 1.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23555770' d='M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+.sel:hover {
+  border-color: #888ba0;
+  box-shadow: 0 2px 4px rgba(0,0,0,.08);
+}
+.sel:focus {
+  outline: none;
+  border-color: var(--color-text-info);
+  box-shadow: 0 0 0 3px rgba(26,95,180,.15);
+}
+
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-border-tertiary);
+  outline: none;
+  transition: background .15s;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-text-info);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  cursor: pointer;
+  transition: transform .1s;
+}
+input[type=range]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+input[type=range]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-text-info);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  cursor: pointer;
+}
+
+.g3 { display: grid; grid-template-columns: 1fr 32px 1fr; gap: 6px; align-items: center; margin: 1rem 0; }
+.g3w { display: grid; grid-template-columns: 1fr 32px 1fr 32px 1fr; gap: 6px; align-items: center; margin: 1rem 0; }
+.box { background: var(--color-background-secondary); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 9px 11px; text-align: center; }
+.box .bl { font-size: 10px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
+.box .bv { font-size: 12px; font-weight: 500; color: var(--color-text-primary); line-height: 1.4; }
+.box.red { background: var(--color-background-danger); border-color: var(--color-border-danger); }
+.box.red .bl { color: var(--color-text-danger); }
+.box.red .bv { color: var(--color-text-danger); }
+.box.grn { background: var(--color-background-success); border-color: var(--color-border-success); }
+.box.grn .bl { color: var(--color-text-success); }
+.box.grn .bv { color: var(--color-text-success); }
+.box.blu { background: var(--color-background-info); border-color: var(--color-border-info); }
+.box.blu .bl { color: var(--color-text-info); }
+.box.blu .bv { color: var(--color-text-info); }
+.arr { text-align: center; font-size: 16px; color: var(--color-text-secondary); }
+
+.steps { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+.step {
+  padding: 7px 14px;
+  border: 1.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s ease;
+  color: var(--color-text-secondary);
+  background: var(--color-background-primary);
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+.step.on {
+  background: var(--color-text-info);
+  color: #fff;
+  border-color: var(--color-text-info);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(26,95,180,.25);
+}
+.step:hover:not(.on) {
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  border-color: #a0a4b0;
+  box-shadow: 0 2px 4px rgba(0,0,0,.08);
+}
+
+.efcard {
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.efcard:hover { background: var(--color-background-secondary); box-shadow: 0 2px 4px rgba(0,0,0,.08); }
+.efcard.open { background: var(--color-background-warning); border-color: var(--color-border-warning); }
+.efcard .eft { font-size: 13px; font-weight: 500; color: var(--color-text-primary); display: flex; justify-content: space-between; align-items: center; }
+.efcard.open .eft { color: var(--color-text-warning); }
+.efd { font-size: 12px; color: var(--color-text-secondary); margin-top: 8px; line-height: 1.6; display: none; }
+.efcard.open .efd { display: block; color: var(--color-text-warning); }
+
+@media (max-width: 600px) {
+  .w { padding: 0.75rem 0.5rem; }
+
+  .nav { gap: 6px; }
+  .nb { padding: 7px 12px; font-size: 12px; }
+
+  .ttl { font-size: 15px; }
+  .sub { font-size: 12px; }
+
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .row label { min-width: unset; font-size: 12px; }
+  .row .v { min-width: unset; text-align: right; }
+
+  .cards { grid-template-columns: 1fr; gap: 8px; }
+  .cards4 { grid-template-columns: 1fr; gap: 8px; }
+  .cv { font-size: 16px; }
+
+  .info, .ok { font-size: 12px; padding: 8px 10px; }
+
+  .cw { height: 200px !important; }
+
+  .leg { font-size: 11px; gap: 8px; }
+
+  .sel { font-size: 12px; padding: 8px 28px 8px 10px; }
+
+  .g3 { grid-template-columns: 1fr; gap: 6px; }
+  .g3w { grid-template-columns: 1fr; gap: 6px; }
+  .arr { transform: rotate(90deg); font-size: 14px; padding: 2px 0; }
+  .box .bv { font-size: 11px; }
+
+  .steps { gap: 6px; }
+  .step { padding: 5px 10px; font-size: 11px; }
+
+  .efcard { padding: 8px 10px; }
+  .efcard .eft { font-size: 12px; }
+  .efd { font-size: 11px; }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .cards { grid-template-columns: repeat(2, 1fr); }
+  .row label { min-width: 150px; }
+}
+.topnav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 1rem;
+  max-width: 960px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--color-border-tertiary);
+  margin-bottom: 4px;
+}
+.topnav-home {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  padding: 5px 10px;
+  border-radius: var(--border-radius-md);
+  transition: background .15s;
+}
+.topnav-home:hover { background: var(--color-background-secondary); }
+.topnav-sep { color: var(--color-border-secondary); font-size: 14px; }
+.topnav a.tn {
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 5px 12px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid transparent;
+  transition: all .15s;
+}
+.topnav a.tn:hover { background: var(--color-background-secondary); }
+.topnav a.tn.t1 { color: #1D9E75; }
+.topnav a.tn.t2 { color: #378ADD; }
+.topnav a.tn.t3 { color: #BA7517; }
+.topnav a.tn.t4 { color: #D85A30; }
+.topnav a.tn.cur { font-weight: 700; border-color: currentColor; background: color-mix(in srgb, currentColor 8%, transparent); }
+@media (max-width: 600px) {
+  .topnav { padding: 8px 0.5rem; gap: 4px; }
+  .topnav-home { font-size: 12px; padding: 4px 8px; }
+  .topnav a.tn { font-size: 11px; padding: 4px 8px; }
+}
+</style>
+
+    <nav class="topnav">
+      <a href="index.html" class="topnav-home">Inicio</a>
+      <span class="topnav-sep">|</span>
+      <a href="reflexo_inato.html" class="tn t1">Reflexo inato</a>
+      <a href="reflexo_aprendido.html" class="tn t2">Reflexo aprendido</a>
+      <a href="reforcamento_aprendido.html" class="tn t3">Reforçamento</a>
+      <a href="controle_aversivo.html" class="tn t4 cur">Controle aversivo</a>
+    </nav>
+    
+    <div class="w">
+    <div class="nav">
+      <button class="nb on" onclick="show('visao')">Visão geral</button>
+      <button class="nb" onclick="show('refneg')">Reforç. negativo</button>
+      <button class="nb" onclick="show('punicao')">Punição</button>
+      <button class="nb" onclick="show('fuga')">Fuga e esquiva</button>
+      <button class="nb" onclick="show('efeitos')">Efeitos colaterais</button>
+      <button class="nb" onclick="show('alternativas')">Alternativas</button>
+    </div>
+    
+    <!-- VISÃO GERAL -->
+    <div id="panel-visao" class="panel on">
+      <div class="ttl">O controle aversivo: mapa das contingências</div>
+      <div class="sub">Selecione uma contingência para destacá-la no gráfico e ver seu diagrama e explicação.</div>
+      <div class="steps" id="vg-btns"></div>
+      <div id="vg-info" class="info"></div>
+      <div id="vg-diag"></div>
+      <div class="cw" style="height:260px"><canvas id="chart-vg"></canvas></div>
+      <div class="leg">
+        <span><span class="ld" style="background:#1D9E75"></span>Reforç. positivo (referência)</span>
+        <span><span class="ld" style="background:#378ADD"></span>Reforç. negativo</span>
+        <span><span class="ld" style="background:#D85A30"></span>Punição positiva</span>
+        <span><span class="ld" style="background:#888780"></span>Punição negativa</span>
+      </div>
+    </div>
+    
+    <!-- REFORÇAMENTO NEGATIVO -->
+    <div id="panel-refneg" class="panel">
+      <div class="ttl">Reforçamento negativo: fuga e esquiva</div>
+      <div class="sub">O reforçamento negativo aumenta a frequência do comportamento pela remoção ou prevenção de um estímulo aversivo. Alterne entre fuga e esquiva.</div>
+      <div class="row"><label>Exemplo</label>
+        <select class="sel" id="rn-sel" onchange="updateRN()">
+          <option value="0">Usar protetor solar → evita queimadura</option>
+          <option value="1">Rato pressiona barra → retira choque</option>
+          <option value="2">Ligar para o vizinho → ele para o barulho</option>
+          <option value="3">Tomar analgésico → alivia dor de cabeça</option>
+          <option value="4">Mentir sobre dever → evita bronca</option>
+        </select>
+      </div>
+      <div class="steps" id="rn-btns"></div>
+      <div id="rn-info" class="info"></div>
+      <div id="rn-diag"></div>
+      <div class="row"><label>Intensidade do estímulo aversivo</label><input type="range" min="10" max="100" value="60" step="1" id="rn-int" oninput="updateRN()"><span class="v" id="rn-int-v">60</span></div>
+      <div class="cards" id="rn-cards"></div>
+      <div class="cw" style="height:220px"><canvas id="chart-rn"></canvas></div>
+      <div class="leg"><span><span class="ld" style="background:#378ADD"></span>Frequência do comportamento</span><span><span class="ld" style="background:#D85A30"></span>Intensidade do estímulo aversivo</span></div>
+    </div>
+    
+    <!-- PUNIÇÃO -->
+    <div id="panel-punicao" class="panel">
+      <div class="ttl">Punição positiva e negativa</div>
+      <div class="sub">A punição reduz a frequência do comportamento — positiva pela adição de estímulo aversivo, negativa pela retirada de reforçador.</div>
+      <div class="row"><label>Comportamento punido</label>
+        <select class="sel" id="pu-sel" onchange="updatePU()">
+          <option value="0">Adolescente chega bêbado em casa</option>
+          <option value="1">Criança faz birra para ganhar pirulito</option>
+          <option value="2">Rato pressiona barra com choque</option>
+          <option value="3">Aluno conversa na aula de EF</option>
+        </select>
+      </div>
+      <div class="row"><label>Intensidade da punição</label><input type="range" min="10" max="100" value="60" step="1" id="pu-int" oninput="updatePU()"><span class="v" id="pu-int-v">60</span></div>
+      <div class="row"><label>Consistência da punição (%)</label><input type="range" min="10" max="100" value="80" step="10" id="pu-cons" oninput="updatePU()"><span class="v" id="pu-cons-v">80%</span></div>
+      <div id="pu-info" class="info"></div>
+      <div class="cards4" id="pu-cards"></div>
+      <div class="cw" style="height:240px"><canvas id="chart-pu"></canvas></div>
+      <div class="leg"><span><span class="ld" style="background:#D85A30"></span>Punição positiva</span><span><span class="ld" style="background:#888780"></span>Punição negativa</span><span><span class="ld" style="background:#378ADD"></span>Sem punição (linha base)</span></div>
+    </div>
+    
+    <!-- FUGA E ESQUIVA -->
+    <div id="panel-fuga" class="panel">
+      <div class="ttl">Fuga vs. esquiva: o papel do estímulo aversivo</div>
+      <div class="sub">Na fuga o estímulo aversivo já está presente; na esquiva ele ainda não está. Alterne entre os dois comportamentos.</div>
+      <div class="row"><label>Exemplo</label>
+        <select class="sel" id="fe-sel" onchange="updateFE()">
+          <option value="0">Cliente ansioso em terapia</option>
+          <option value="1">Rato e choque na caixa de Skinner</option>
+          <option value="2">Motorista e radar de velocidade</option>
+          <option value="3">Bart Simpson e a lição de casa</option>
+        </select>
+      </div>
+      <div class="steps" id="fe-btns"></div>
+      <div id="fe-info" class="info"></div>
+      <div id="fe-diag"></div>
+      <div class="cw" style="height:230px"><canvas id="chart-fe"></canvas></div>
+      <div class="leg"><span><span class="ld" style="background:#D85A30"></span>Fuga (estímulo aversivo presente)</span><span><span class="ld" style="background:#378ADD"></span>Esquiva (estímulo aversivo ausente)</span></div>
+    </div>
+    
+    <!-- EFEITOS COLATERAIS -->
+    <div id="panel-efeitos" class="panel">
+      <div class="ttl">Efeitos colaterais do controle aversivo</div>
+      <div class="sub">O controle aversivo apresenta 4 efeitos colaterais indesejáveis. Clique em cada um para expandir a explicação.</div>
+      <div id="ef-list"></div>
+      <div class="cw" style="height:220px;margin-top:1rem"><canvas id="chart-ef"></canvas></div>
+      <div class="leg"><span><span class="ld" style="background:#D85A30"></span>Indesejabilidade do efeito</span><span><span class="ld" style="background:#888780"></span>Frequência na prática</span></div>
+    </div>
+    
+    <!-- ALTERNATIVAS -->
+    <div id="panel-alternativas" class="panel">
+      <div class="ttl">Alternativas ao controle aversivo</div>
+      <div class="sub">Analistas do comportamento recomendam procedimentos alternativos à punição. Compare eficácia, facilidade e efeitos colaterais de cada alternativa.</div>
+      <div class="row"><label>Contexto de aplicação</label>
+        <select class="sel" id="alt-sel" onchange="updateAlt()">
+          <option value="0">Educação infantil (escola/casa)</option>
+          <option value="1">Psicoterapia analítico-comportamental</option>
+          <option value="2">Treinamento de animais</option>
+          <option value="3">Gestão e liderança</option>
+        </select>
+      </div>
+      <div id="alt-info" class="info"></div>
+      <div class="cards4" id="alt-cards"></div>
+      <div class="cw" style="height:250px"><canvas id="chart-alt"></canvas></div>
+      <div class="leg">
+        <span><span class="ld" style="background:#1D9E75"></span>Eficácia a longo prazo</span>
+        <span><span class="ld" style="background:#378ADD"></span>Facilidade de aplicação</span>
+        <span><span class="ld" style="background:#D85A30"></span>Efeitos colaterais</span>
+      </div>
+    </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <script>
+    let charts={};
+    function dstr(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+    
+    function show(id){
+      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+      document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+      document.getElementById('panel-'+id).classList.add('on');
+      event.target.classList.add('on');
+      ({visao:initVG, refneg:buildRN, punicao:buildPU, fuga:buildFE, efeitos:buildEF, alternativas:buildAlt})[id]?.();
+    }
+    
+    // ===== VISÃO GERAL =====
+    const VG_COLORS=['#1D9E75','#378ADD','#D85A30','#888780'];
+    const VG_LABELS=['Reforç. positivo (referência)','Reforç. negativo','Punição positiva','Punição negativa'];
+    const VG_VALS=[
+      [5,20,35,50,65,78,88,94,98,100],
+      [5,18,33,48,62,75,85,92,97,100],
+      [100,82,65,52,40,30,22,16,11,8],
+      [100,85,70,57,46,36,28,21,16,12]
+    ];
+    const VG_INFOS=[
+      'Referência: reforçamento positivo (R → SR+). Comportamento produz adição de estímulo reforçador → frequência aumenta progressivamente. Não é controle aversivo, mas serve de comparação.',
+      'Reforçamento negativo (R → SR−): comportamento produz remoção ou prevenção de estímulo aversivo → frequência aumenta. Ex: usar protetor solar evita queimadura; rato pressiona barra para retirar choque.',
+      'Punição positiva (R → SP+): comportamento produz adição de estímulo aversivo → frequência diminui. Ex: chegar bêbado → levar bronca → frequência cai. Efeito presente enquanto a contingência viger.',
+      'Punição negativa (R → SP−): comportamento produz remoção de estímulo reforçador → frequência diminui. Ex: falar demais no telefone → perder a mesada → frequência de falar cai.'
+    ];
+    const VG_DIAGS=[
+      {r:'Comportamento',mid:'Adição de SR+',ef:'Frequência aumenta',rc:'blu',mc:'grn'},
+      {r:'Comportamento',mid:'Remoção/prevenção de EA',ef:'Frequência aumenta',rc:'blu',mc:'grn'},
+      {r:'Comportamento',mid:'Adição de EA (SP+)',ef:'Frequência diminui',rc:'blu',mc:'red'},
+      {r:'Comportamento',mid:'Remoção de SR+ (SP−)',ef:'Frequência diminui',rc:'blu',mc:'red'}
+    ];
+    
+    let vgStep=0, vgChart=null;
+    
+    function setVgStep(i){ vgStep=i; renderVG(); }
+    
+    function renderVG(){
+      // buttons
+      document.getElementById('vg-btns').innerHTML = VG_LABELS.map((l,i)=>
+        `<button class="step${vgStep===i?' on':''}" onclick="setVgStep(${i})">${l}</button>`
+      ).join('');
+    
+      // info
+      document.getElementById('vg-info').textContent = VG_INFOS[vgStep];
+    
+      // diagram
+      const d = VG_DIAGS[vgStep];
+      document.getElementById('vg-diag').innerHTML=`
+        <div class="g3">
+          <div class="box blu"><div class="bl">Comportamento (R)</div><div class="bv">${d.r}</div></div>
+          <div class="arr">→</div>
+          <div class="box ${d.mc}"><div class="bl">Operação</div><div class="bv">${d.mid}</div></div>
+        </div>
+        <div style="margin:-4px 0 8px;font-size:12px;color:var(--color-text-secondary);padding-left:4px">→ Efeito: <strong>${d.ef}</strong></div>`;
+    
+      // chart: highlight selected, dim others
+      if(vgChart){
+        vgChart.data.datasets.forEach((ds,i)=>{
+          if(i===vgStep){
+            ds.borderWidth=3;
+            ds.borderColor=VG_COLORS[i];
+            ds.backgroundColor=VG_COLORS[i]+'28';
+            ds.pointRadius=4;
+            ds.fill=true;
+          } else {
+            ds.borderWidth=1;
+            ds.borderColor=VG_COLORS[i]+'55';
+            ds.backgroundColor='transparent';
+            ds.pointRadius=0;
+            ds.fill=false;
+          }
+        });
+        vgChart.update('none');
+      }
+    }
+    
+    function initVG(){
+      dstr('vg');
+      const ctx=document.getElementById('chart-vg').getContext('2d');
+      const xs=Array.from({length:10},(_,i)=>i+1);
+      vgChart=new Chart(ctx,{
+        type:'line',
+        data:{
+          labels:xs,
+          datasets: VG_LABELS.map((label,i)=>({
+            label, data:VG_VALS[i],
+            borderColor:VG_COLORS[i],
+            backgroundColor:'transparent',
+            tension:.4, pointRadius:0, fill:false, borderWidth:1
+          }))
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},
+               title:{display:true,text:'Exposições à contingência',color:'#888',font:{size:11}}},
+            y:{min:0,max:110,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},
+               title:{display:true,text:'Frequência relativa do comportamento (%)',color:'#888',font:{size:11}}}
+          }
+        }
+      });
+      charts['vg']=vgChart;
+      vgStep=0;
+      renderVG();
+    }
+    
+    // ===== REFORÇAMENTO NEGATIVO =====
+    const rnExs=[
+      {fuga:'Passar protetor após queimadura (remove o calor)',esquiva:'Passar protetor antes de sair (evita queimadura)',ea:'Queimadura solar'},
+      {fuga:'Pressionar barra durante choque (retira choque)',esquiva:'Pressionar barra ao sinal sonoro (evita choque)',ea:'Choque elétrico'},
+      {fuga:'Ligar ao vizinho enquanto faz barulho (remove barulho)',esquiva:'Ligar ao vizinho preventivamente',ea:'Barulho do vizinho'},
+      {fuga:'Tomar analgésico com dor presente (alivia)',esquiva:'Tomar analgésico preventivo antes da dor',ea:'Dor de cabeça'},
+      {fuga:'Mentir depois de não fazer o dever',esquiva:'Fazer dever antes para não levar bronca',ea:'Bronca do professor'}
+    ];
+    let rnStep=0, rnChart=null;
+    function setRnStep(i){rnStep=i;updateRN();}
+    function updateRN(){
+      const idx=parseInt(document.getElementById('rn-sel').value);
+      const int=parseInt(document.getElementById('rn-int').value);
+      document.getElementById('rn-int-v').textContent=int;
+      const e=rnExs[idx];
+      document.getElementById('rn-btns').innerHTML=['Fuga','Esquiva'].map((t,i)=>
+        `<button class="step${rnStep===i?' on':''}" onclick="setRnStep(${i})">${t}</button>`).join('');
+      const isFuga=rnStep===0;
+      document.getElementById('rn-info').textContent=isFuga
+        ?`Fuga: o estímulo aversivo (${e.ea}) já está presente. O comportamento o retira. Quanto mais intenso o aversivo, mais frequente a fuga.`
+        :`Esquiva: o comportamento ocorre ANTES da apresentação do aversivo (${e.ea}), prevenindo sua ocorrência. Mantido pelo adiamento/cancelamento.`;
+      document.getElementById('rn-diag').innerHTML=isFuga?`
+        <div class="g3">
+          <div class="box red"><div class="bl">EA presente</div><div class="bv">${e.ea}</div></div>
+          <div class="arr">→</div>
+          <div class="box blu"><div class="bl">Resposta de fuga</div><div class="bv">${e.fuga}</div></div>
+        </div>
+        <div style="margin:-4px 0 8px;font-size:12px;color:var(--color-text-secondary);padding-left:4px">→ Consequência: <strong>Remoção do EA (SR−) → frequência aumenta</strong></div>`:`
+        <div class="g3">
+          <div class="box blu"><div class="bl">Resposta de esquiva</div><div class="bv">${e.esquiva}</div></div>
+          <div class="arr">→</div>
+          <div class="box grn"><div class="bl">Consequência (SR−)</div><div class="bv">EA nunca ocorre → frequência aumenta</div></div>
+        </div>
+        <div style="margin:-4px 0 8px;font-size:12px;color:var(--color-text-secondary);padding-left:4px">EA prevenido: <strong style="opacity:.5">${e.ea}</strong></div>`;
+      const freqFuga=Math.round(Math.min(98,int*0.9));
+      document.getElementById('rn-cards').innerHTML=`
+        <div class="card"><div class="cl">Frequência do comport.</div><div class="cv">${freqFuga}%</div></div>
+        <div class="card"><div class="cl">Tipo</div><div class="cv" style="font-size:14px">${isFuga?'Fuga':'Esquiva'}</div></div>
+        <div class="card"><div class="cl">Intensidade do EA</div><div class="cv">${int}</div></div>`;
+      if(rnChart){
+        const xs=Array.from({length:20},(_,i)=>i+1);
+        rnChart.data.labels=xs;
+        rnChart.data.datasets[0].data=xs.map(x=>Math.round(Math.min(freqFuga,freqFuga*(1-Math.exp(-x/4)))));
+        rnChart.data.datasets[1].data=xs.map(()=>int);
+        rnChart.update('none');
+      }
+    }
+    function buildRN(){
+      dstr('rn');
+      const ctx=document.getElementById('chart-rn').getContext('2d');
+      rnChart=new Chart(ctx,{type:'line',data:{labels:[],datasets:[
+        {label:'Comportamento',data:[],borderColor:'#378ADD',backgroundColor:'#378ADD18',tension:.4,pointRadius:1,fill:true},
+        {label:'Intensidade EA',data:[],borderColor:'#D85A30',borderDash:[5,3],tension:0,pointRadius:0}
+      ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        x:{ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Exposições à contingência',color:'#888',font:{size:11}}},
+        y:{min:0,max:110,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Frequência / Intensidade (%)',color:'#888',font:{size:11}}}
+      }}});
+      charts['rn']=rnChart; rnStep=0; updateRN();
+    }
+    
+    // ===== PUNIÇÃO =====
+    const puExs=[
+      {pp:'Levar bronca/palmada',pn:'Perder mesada/saídas',desc:'O adolescente volta bêbado: punição positiva = bronca/palmada; punição negativa = perder privilégios. Ambas reduzem frequência, mas com efeitos colaterais diferentes.'},
+      {pp:'Receber palmada na mão',pn:'Não receber o pirulito',desc:'Birra da criança: punição positiva = palmada; punição negativa = não receber o doce. Punição sem alternativas pode gerar contracontrole.'},
+      {pp:'Choque ao pressionar barra',pn:'Água suspensa durante choque',desc:'Clássico experimental: choque como punição positiva reduz pressão à barra, mas gera supressão generalizada e agressão.'},
+      {pp:'Bronca na frente da turma',pn:'Ficar sem recreio',desc:'Bronca pública (punição positiva) ou perder recreio (punição negativa). Bronca pública elicia respostas emocionais mais intensas.'}
+    ];
+    let puChart=null;
+    function updatePU(){
+      const idx=parseInt(document.getElementById('pu-sel').value);
+      const int=parseInt(document.getElementById('pu-int').value);
+      const cons=parseInt(document.getElementById('pu-cons').value);
+      document.getElementById('pu-int-v').textContent=int;
+      document.getElementById('pu-cons-v').textContent=cons+'%';
+      const e=puExs[idx];
+      document.getElementById('pu-info').textContent=e.desc;
+      const efPP=Math.round(int*(cons/100)*0.9);
+      const efPN=Math.round(int*(cons/100)*0.75);
+      document.getElementById('pu-cards').innerHTML=`
+        <div class="card"><div class="cl">Punição positiva: ${e.pp}</div><div class="cv" style="font-size:14px">Reduz ${efPP}%</div></div>
+        <div class="card"><div class="cl">Punição negativa: ${e.pn}</div><div class="cv" style="font-size:14px">Reduz ${efPN}%</div></div>
+        <div class="card"><div class="cl">Efeito da consistência</div><div class="cv" style="font-size:14px">${cons<50?'Baixo':cons<80?'Moderado':'Alto'}</div></div>
+        <div class="card"><div class="cl">Na ausência do punidor</div><div class="cv" style="font-size:14px">${cons<60?'Comportamento retorna':'Contracontrole'}</div></div>`;
+      if(puChart){
+        const xs=Array.from({length:20},(_,i)=>i+1);
+        const taxaPP=int*(cons/100)/600;
+        const taxaPN=int*(cons/100)/750;
+        puChart.data.labels=xs;
+        puChart.data.datasets[0].data=xs.map(x=>Math.round(Math.max(100-efPP,100*Math.exp(-taxaPP*x))));
+        puChart.data.datasets[1].data=xs.map(x=>Math.round(Math.max(100-efPN,100*Math.exp(-taxaPN*x))));
+        puChart.data.datasets[2].data=Array(20).fill(100);
+        puChart.update('none');
+      }
+    }
+    function buildPU(){
+      dstr('pu');
+      const ctx=document.getElementById('chart-pu').getContext('2d');
+      puChart=new Chart(ctx,{type:'line',data:{labels:[],datasets:[
+        {label:'Punição positiva',data:[],borderColor:'#D85A30',backgroundColor:'#D85A3010',tension:.4,pointRadius:1,fill:true},
+        {label:'Punição negativa',data:[],borderColor:'#888780',backgroundColor:'#88878010',tension:.4,pointRadius:1,fill:true,borderDash:[4,3]},
+        {label:'Sem punição',data:[],borderColor:'#378ADD',borderDash:[6,4],tension:0,pointRadius:0}
+      ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        x:{ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Exposições à contingência',color:'#888',font:{size:11}}},
+        y:{min:0,max:110,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Frequência do comportamento (%)',color:'#888',font:{size:11}}}
+      }}});
+      charts['pu']=puChart; updatePU();
+    }
+    
+    // ===== FUGA E ESQUIVA =====
+    const feExs=[
+      {fuga:{r:'Ir embora da sessão',c:'Perguntas param (SR−)',ea:'Perguntas ansiogênicas'},
+       esquiva:{r:'Relatar a semana detalhadamente',c:'Perguntas nunca são feitas (SR−)',ea:'Perguntas (evitadas)'},
+       df:'O cliente foge: estímulo aversivo já presente (perguntas). Ir embora encerra o contato com o aversivo.',
+       de:'O cliente esquiva: relata a semana antes de o terapeuta perguntar, prevenindo o aversivo.'},
+      {fuga:{r:'Pressionar barra com choque ativo',c:'Choque retirado (SR−)',ea:'Choque elétrico ativo'},
+       esquiva:{r:'Pressionar barra ao sinal sonoro',c:'Choque nunca ocorre (SR−)',ea:'Choque elétrico (evitado)'},
+       df:'Fuga: choque já está acontecendo. Pressionar a barra o remove imediatamente.',
+       de:'Esquiva: sinal sonoro precede o choque. O rato pressiona a barra ao sinal para nunca receber o choque.'},
+      {fuga:{r:'Frear só diante do radar',c:'Evita multa imediata (SR−)',ea:'Radar à vista'},
+       esquiva:{r:'Manter velocidade correta a rota toda',c:'Multa nunca ocorre (SR−)',ea:'Multa (evitada)'},
+       df:'Fuga-contracontrole: motorista só freia quando já vê o radar. Velocidade acima do limite continua nos demais trechos.',
+       de:'Esquiva: motorista mantém velocidade correta o tempo todo. Comportamento mais estável e sem contracontrole.'},
+      {fuga:{r:'Dizer que o cachorro comeu o dever',c:'Bronca imediata evitada (SR−)',ea:'Bronca da professora (presente)'},
+       esquiva:{r:'Fazer o dever antes de ir à escola',c:'Bronca nunca acontece (SR−)',ea:'Bronca (evitada)'},
+       df:'Fuga de Bart: a professora já está cobrando. Mentir é a resposta de fuga ao aversivo imediato.',
+       de:'Esquiva: fazer o dever em casa elimina a probabilidade de bronca antes mesmo de chegar à escola.'}
+    ];
+    let feStep=0, feChart=null;
+    function setFeStep(i){feStep=i;updateFE();}
+    function updateFE(){
+      const idx=parseInt(document.getElementById('fe-sel').value);
+      const e=feExs[idx];
+      document.getElementById('fe-btns').innerHTML=['Fuga','Esquiva'].map((t,i)=>
+        `<button class="step${feStep===i?' on':''}" onclick="setFeStep(${i})">${t}</button>`).join('');
+      const isFuga=feStep===0;
+      const d=isFuga?e.fuga:e.esquiva;
+      document.getElementById('fe-info').textContent=isFuga?e.df:e.de;
+      document.getElementById('fe-diag').innerHTML=isFuga?`
+        <div class="g3">
+          <div class="box red"><div class="bl">EA PRESENTE</div><div class="bv">${d.ea}</div></div>
+          <div class="arr">→</div>
+          <div class="box blu"><div class="bl">Resposta de fuga</div><div class="bv">${d.r}</div></div>
+        </div>
+        <div style="margin:-4px 0 8px;font-size:12px;color:var(--color-text-secondary);padding-left:4px">→ <strong>${d.c}</strong></div>`:`
+        <div class="g3">
+          <div class="box blu"><div class="bl">Resposta de esquiva</div><div class="bv">${d.r}</div></div>
+          <div class="arr">→</div>
+          <div class="box grn"><div class="bl">Consequência (SR−)</div><div class="bv">${d.c}</div></div>
+        </div>
+        <div style="margin:-4px 0 8px;font-size:12px;color:var(--color-text-secondary);padding-left:4px">EA prevenido: <strong>${d.ea}</strong></div>`;
+      if(feChart){
+        const xs=Array.from({length:20},(_,i)=>i+1);
+        feChart.data.labels=xs;
+        feChart.data.datasets[0].data=isFuga?xs.map(x=>Math.round(Math.min(95,15+x*4))):Array(20).fill(0);
+        feChart.data.datasets[1].data=isFuga?Array(20).fill(0):xs.map(x=>Math.round(Math.min(92,10+x*4)));
+        feChart.update('none');
+      }
+    }
+    function buildFE(){
+      dstr('fe');
+      const ctx=document.getElementById('chart-fe').getContext('2d');
+      feChart=new Chart(ctx,{type:'line',data:{labels:[],datasets:[
+        {label:'Fuga',data:[],borderColor:'#D85A30',backgroundColor:'#D85A3018',tension:.4,pointRadius:2,fill:true},
+        {label:'Esquiva',data:[],borderColor:'#378ADD',backgroundColor:'#378ADD18',tension:.4,pointRadius:2,fill:true,borderDash:[5,3]}
+      ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        x:{ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Exposições à contingência',color:'#888',font:{size:11}}},
+        y:{min:0,max:110,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Frequência do comportamento (%)',color:'#888',font:{size:11}}}
+      }}});
+      charts['fe']=feChart; feStep=0; updateFE();
+    }
+    
+    // ===== EFEITOS COLATERAIS =====
+    const efData=[
+      {t:'1. Eliciação de respostas emocionais',
+       d:'O EA elicia tremores, taquicardia, choro, ansiedade. Quem pune pode sentir "culpa" ao ver as emoções do punido e liberar reforçadores — ensinando que chorar resolve. O punidor pode também se tornar um EC que elicia medo (criança que teme o pai severo).',
+       indes:90,freq:85},
+      {t:'2. Supressão de outros comportamentos além do punido',
+       d:'Comportamentos próximos temporalmente à punição também podem ser suprimidos — mesmo sem relação com ela. Ex: Joãozinho punido por estourar balão para de dançar e brincar. Na clínica: cliente punido por revelar um comportamento pode parar de compartilhar outros temas relevantes.',
+       indes:80,freq:75},
+      {t:'3. Ocorrência de respostas incompatíveis',
+       d:'Após a punição, o organismo emite respostas que tornam o comportamento punido menos provável. Ex: jovem punido por ligar bêbado entrega o celular ao amigo. A jovem que apanhou ao investir num relacionamento passa a romper namoros antes de se envolver.',
+       indes:65,freq:70},
+      {t:'4. Respostas de contracontrole',
+       d:'O organismo aprende a se esquivar do agente punidor, não do comportamento punido. Ex: Bart mente para a professora. Motorista freia só perto do radar. Criança faz birra só na ausência dos pais. É a maior limitação prática do uso da punição.',
+       indes:75,freq:80}
+    ];
+    let efChart=null, efOpen=-1;
+    function buildEF(){
+      document.getElementById('ef-list').innerHTML=efData.map((e,i)=>`
+        <div class="efcard${efOpen===i?' open':''}" id="ef-${i}" onclick="toggleEf(${i})">
+          <div class="eft"><span>${e.t}</span><span>${efOpen===i?'▲':'▼'}</span></div>
+          <div class="efd">${e.d}</div>
+        </div>`).join('');
+      dstr('ef');
+      const ctx=document.getElementById('chart-ef').getContext('2d');
+      efChart=new Chart(ctx,{type:'bar',data:{
+        labels:efData.map((_,i)=>'Efeito '+(i+1)),
+        datasets:[
+          {label:'Indesejabilidade',data:efData.map(e=>e.indes),backgroundColor:'#D85A3066',borderColor:'#D85A30',borderWidth:1,borderRadius:4},
+          {label:'Frequência prática',data:efData.map(e=>e.freq),backgroundColor:'#88878044',borderColor:'#888780',borderWidth:1,borderRadius:4}
+        ]
+      },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        x:{ticks:{color:'#888',font:{size:11}},grid:{color:'rgba(128,128,128,.07)'}},
+        y:{min:0,max:110,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Intensidade / Frequência (0–100)',color:'#888',font:{size:11}}}
+      }}});
+      charts['ef']=efChart;
+    }
+    function toggleEf(i){
+      efOpen=efOpen===i?-1:i;
+      document.querySelectorAll('.efcard').forEach((el,j)=>{
+        el.classList.toggle('open', j===efOpen);
+        el.querySelector('.eft span:last-child').textContent=j===efOpen?'▲':'▼';
+      });
+    }
+    
+    // ===== ALTERNATIVAS =====
+    const altData=[
+      {info:'Educação infantil: reforçamento positivo de comportamentos desejados é mais eficaz e menos nocivo que punição. Reforçamento diferencial permite extinguir o indesejado enquanto reforça o alternativo.',
+       labs:['Punição positiva','Punição negativa','Extinção','Reforç. diferencial','RF+ de alternativas'],
+       efic:[45,40,60,80,85],facil:[85,70,65,55,60],efcol:[90,75,55,25,10]},
+      {info:'Psicoterapia: analistas do comportamento preferem reforçar comportamentos funcionalmente equivalentes. Extinção isolada pode ser contraproducente em quadros depressivos — sempre combinar com reforço positivo.',
+       labs:['Punição positiva','Extinção isolada','Reforç. diferencial','RF+ de alternativas','Aumentar freq. RF+'],
+       efic:[30,50,85,88,82],facil:[60,70,65,55,50],efcol:[95,60,20,10,8]},
+      {info:'Treinamento de animais: reforçamento positivo (clicker training) é o método mais eficaz e sem efeitos colaterais. Punição gera supressão generalizada e medo do treinador.',
+       labs:['Punição positiva','Punição negativa','Extinção','Modelagem + RF+','Clicker training'],
+       efic:[40,35,55,90,95],facil:[75,65,60,70,75],efcol:[85,70,45,10,5]},
+      {info:'Gestão e liderança: reforçamento positivo de boas performances supera punição de erros. Punição em público suprime comportamentos de iniciativa e gera contracontrole.',
+       labs:['Crítica pública','Advertência formal','Ignorar comportamento','Elogiar alternativas','RF+ de entregas'],
+       efic:[25,40,35,75,88],facil:[80,70,65,60,55],efcol:[95,70,50,15,8]}
+    ];
+    let altChart=null;
+    function updateAlt(){
+      const idx=parseInt(document.getElementById('alt-sel').value);
+      const d=altData[idx];
+      document.getElementById('alt-info').textContent=d.info;
+      const best=d.efic.indexOf(Math.max(...d.efic));
+      const safest=d.efcol.indexOf(Math.min(...d.efcol));
+      const easiest=d.facil.indexOf(Math.max(...d.facil));
+      document.getElementById('alt-cards').innerHTML=`
+        <div class="card"><div class="cl">Mais eficaz a longo prazo</div><div class="cv" style="font-size:13px">${d.labs[best]}</div></div>
+        <div class="card"><div class="cl">Menor efeito colateral</div><div class="cv" style="font-size:13px">${d.labs[safest]}</div></div>
+        <div class="card"><div class="cl">Mais fácil de aplicar</div><div class="cv" style="font-size:13px">${d.labs[easiest]}</div></div>
+        <div class="card"><div class="cl">Recomendação AC</div><div class="cv" style="font-size:12px">RF+ diferencial</div></div>`;
+      if(altChart){
+        altChart.data.labels=d.labs;
+        altChart.data.datasets[0].data=d.efic;
+        altChart.data.datasets[1].data=d.facil;
+        altChart.data.datasets[2].data=d.efcol;
+        altChart.update('none');
+      }
+    }
+    function buildAlt(){
+      dstr('alt');
+      const ctx=document.getElementById('chart-alt').getContext('2d');
+      altChart=new Chart(ctx,{type:'bar',data:{labels:[],datasets:[
+        {label:'Eficácia longo prazo',data:[],backgroundColor:'#1D9E7566',borderColor:'#1D9E75',borderWidth:1,borderRadius:4},
+        {label:'Facilidade',data:[],backgroundColor:'#378ADD44',borderColor:'#378ADD',borderWidth:1,borderRadius:4},
+        {label:'Efeitos colaterais',data:[],backgroundColor:'#D85A3044',borderColor:'#D85A30',borderWidth:1,borderRadius:4}
+      ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        x:{ticks:{color:'#888',font:{size:10},maxRotation:20},grid:{color:'rgba(128,128,128,.07)'}},
+        y:{min:0,max:110,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Pontuação (0–100)',color:'#888',font:{size:11}}}
+      }}});
+      charts['alt']=altChart; updateAlt();
+    }
+    
+    window.addEventListener('load',()=>initVG());
+    </script>
+</body>
+</html>
+    

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análise do Comportamento — Conceitos Fundamentais</title>
+</head>
+<body>
+<style>
+:root {
+  --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --color-text-primary: #1a1a2e;
+  --color-text-secondary: #555770;
+  --color-text-info: #1a5fb4;
+  --color-text-success: #1a7d45;
+  --color-text-danger: #c4314b;
+  --color-text-warning: #8a6d15;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f4f5f7;
+  --color-background-info: #e8f0fe;
+  --color-background-success: #e6f4ec;
+  --color-background-danger: #fdedef;
+  --color-background-warning: #fff4e0;
+  --color-border-secondary: #c4c7cf;
+  --color-border-tertiary: #dcdfe6;
+  --color-border-info: #a8c7f5;
+  --color-border-success: #8dcaaa;
+  --color-border-danger: #f0a0ad;
+  --color-border-warning: #e0c68a;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); color: var(--color-text-primary); background: var(--color-background-primary); }
+.w { padding: 1.5rem 1rem; max-width: 960px; margin: 0 auto; }
+
+.hero {
+  text-align: center;
+  padding: 2.5rem 1rem 2rem;
+}
+.hero-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+.hero-sub {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  max-width: 640px;
+  margin: 0 auto 1.5rem;
+  line-height: 1.6;
+}
+
+.flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+.flow-item {
+  padding: 7px 14px;
+  border-radius: var(--border-radius-md);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-decoration: none;
+  transition: transform .15s, box-shadow .15s;
+}
+.flow-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0,0,0,.1);
+}
+.flow-arrow {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.topic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 2rem;
+}
+
+.topic-card {
+  border: 1.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 20px;
+  transition: all .2s ease;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.topic-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+.topic-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,.1);
+  transform: translateY(-2px);
+}
+
+.topic-card.t-inato { border-color: #dcdfe6; }
+.topic-card.t-inato::before { background: #1D9E75; }
+.topic-card.t-inato:hover { border-color: #8dcaaa; }
+
+.topic-card.t-aprendido { border-color: #dcdfe6; }
+.topic-card.t-aprendido::before { background: #378ADD; }
+.topic-card.t-aprendido:hover { border-color: #a8c7f5; }
+
+.topic-card.t-reforco { border-color: #dcdfe6; }
+.topic-card.t-reforco::before { background: #BA7517; }
+.topic-card.t-reforco:hover { border-color: #e0c68a; }
+
+.topic-card.t-aversivo { border-color: #dcdfe6; }
+.topic-card.t-aversivo::before { background: #D85A30; }
+.topic-card.t-aversivo:hover { border-color: #f0a0ad; }
+
+.topic-num {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 8px;
+}
+.t-inato .topic-num { color: #1D9E75; }
+.t-aprendido .topic-num { color: #378ADD; }
+.t-reforco .topic-num { color: #BA7517; }
+.t-aversivo .topic-num { color: #D85A30; }
+
+.topic-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.topic-desc {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: 14px;
+  flex: 1;
+}
+
+.topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.tag {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-weight: 500;
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-tertiary);
+}
+
+.topic-link {
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: gap .15s;
+}
+.t-inato .topic-link { color: #1D9E75; }
+.t-aprendido .topic-link { color: #378ADD; }
+.t-reforco .topic-link { color: #BA7517; }
+.t-aversivo .topic-link { color: #D85A30; }
+.topic-card:hover .topic-link { gap: 10px; }
+
+.concepts {
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 20px;
+  margin-bottom: 2rem;
+}
+.concepts-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.concepts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.concept-item {
+  padding: 12px 14px;
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+}
+.concept-term {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 3px;
+}
+.concept-def {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.footer-note {
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  padding: 1rem 0;
+  border-top: 1px solid var(--color-border-tertiary);
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .w { padding: 1rem 0.75rem; }
+  .hero { padding: 1.5rem 0.5rem 1rem; }
+  .hero-title { font-size: 20px; }
+  .hero-sub { font-size: 13px; }
+  .topic-grid { grid-template-columns: 1fr; gap: 12px; }
+  .topic-card { padding: 16px; }
+  .topic-title { font-size: 15px; }
+  .topic-desc { font-size: 12px; }
+  .concepts-grid { grid-template-columns: 1fr; }
+  .flow-item { padding: 5px 10px; font-size: 11px; }
+  .flow-arrow { font-size: 12px; }
+  .flow { gap: 4px; }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .hero-title { font-size: 22px; }
+  .topic-grid { gap: 14px; }
+}
+</style>
+
+<div class="w">
+  <div class="hero">
+    <div class="hero-title">Análise do Comportamento</div>
+    <div class="hero-sub">
+      Material interativo sobre os conceitos fundamentais da análise do comportamento:
+      do reflexo inato ao controle aversivo, passando pelo condicionamento respondente e operante.
+      Cada módulo contém simuladores, gráficos e exemplos clínicos e cotidianos.
+    </div>
+    <div class="flow">
+      <a href="reflexo_inato.html" class="flow-item" style="background:#1D9E7518;color:#1D9E75;border:1px solid #1D9E7544">Reflexo inato</a>
+      <span class="flow-arrow">&#8594;</span>
+      <a href="reflexo_aprendido.html" class="flow-item" style="background:#378ADD18;color:#378ADD;border:1px solid #378ADD44">Reflexo aprendido</a>
+      <span class="flow-arrow">&#8594;</span>
+      <a href="reforcamento_aprendido.html" class="flow-item" style="background:#BA751718;color:#BA7517;border:1px solid #BA751744">Reforçamento</a>
+      <span class="flow-arrow">&#8594;</span>
+      <a href="controle_aversivo.html" class="flow-item" style="background:#D85A3018;color:#D85A30;border:1px solid #D85A3044">Controle aversivo</a>
+    </div>
+  </div>
+
+  <div class="topic-grid">
+
+    <a href="reflexo_inato.html" class="topic-card t-inato">
+      <div class="topic-num">Módulo 1</div>
+      <div class="topic-title">Reflexo Inato</div>
+      <div class="topic-desc">
+        Relação condicional entre estímulo e resposta presente desde o nascimento.
+        Explore as três leis do reflexo (intensidade-magnitude, limiar e latência),
+        os processos de habituação e sensibilização, e como reflexos se relacionam
+        com emoções como medo, susto e ansiedade.
+      </div>
+      <div class="topic-tags">
+        <span class="tag">Leis do reflexo</span>
+        <span class="tag">Habituação</span>
+        <span class="tag">Sensibilização</span>
+        <span class="tag">Emoções</span>
+      </div>
+      <span class="topic-link">Explorar módulo &#8594;</span>
+    </a>
+
+    <a href="reflexo_aprendido.html" class="topic-card t-aprendido">
+      <div class="topic-num">Módulo 2</div>
+      <div class="topic-title">Reflexo Aprendido</div>
+      <div class="topic-desc">
+        Condicionamento respondente (pavloviano): como estímulos neutros passam a
+        eliciar respostas após emparelhamento com estímulos incondicionados.
+        Inclui extinção respondente, recuperação espontânea, generalização,
+        dessensibilização sistemática e condicionamento de ordem superior.
+      </div>
+      <div class="topic-tags">
+        <span class="tag">Pavlov</span>
+        <span class="tag">Extinção</span>
+        <span class="tag">Generalização</span>
+        <span class="tag">Dessensibilização</span>
+      </div>
+      <span class="topic-link">Explorar módulo &#8594;</span>
+    </a>
+
+    <a href="reforcamento_aprendido.html" class="topic-card t-reforco">
+      <div class="topic-num">Módulo 3</div>
+      <div class="topic-title">Reforçamento Aprendido</div>
+      <div class="topic-desc">
+        Comportamento operante e suas consequências: como o reforçamento positivo
+        aumenta a frequência de comportamentos. Abrange a contingência operante (R&#8594;C),
+        extinção operante e seus efeitos (burst, variação topográfica, respostas emocionais),
+        modelagem por aproximações sucessivas e o estudo de Greenspoon sobre reforço social.
+      </div>
+      <div class="topic-tags">
+        <span class="tag">Contingência</span>
+        <span class="tag">Extinção operante</span>
+        <span class="tag">Modelagem</span>
+        <span class="tag">Greenspoon</span>
+      </div>
+      <span class="topic-link">Explorar módulo &#8594;</span>
+    </a>
+
+    <a href="controle_aversivo.html" class="topic-card t-aversivo">
+      <div class="topic-num">Módulo 4</div>
+      <div class="topic-title">Controle Aversivo</div>
+      <div class="topic-desc">
+        Contingências que envolvem estímulos aversivos: reforçamento negativo (fuga e esquiva),
+        punição positiva e negativa, seus efeitos colaterais (respostas emocionais,
+        supressão generalizada, contracontrole) e alternativas recomendadas pela
+        análise do comportamento, como reforçamento diferencial.
+      </div>
+      <div class="topic-tags">
+        <span class="tag">Reforç. negativo</span>
+        <span class="tag">Punição</span>
+        <span class="tag">Fuga e esquiva</span>
+        <span class="tag">Alternativas</span>
+      </div>
+      <span class="topic-link">Explorar módulo &#8594;</span>
+    </a>
+
+  </div>
+
+  <div class="concepts">
+    <div class="concepts-title">Glossário rápido</div>
+    <div class="concepts-grid">
+      <div class="concept-item">
+        <div class="concept-term">Estímulo (S)</div>
+        <div class="concept-def">Qualquer mudança no ambiente que pode afetar o organismo.</div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-term">Resposta (R)</div>
+        <div class="concept-def">Qualquer mudança no organismo produzida por um estímulo ou que opera sobre o ambiente.</div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-term">Reflexo</div>
+        <div class="concept-def">Relação condicional entre um estímulo e uma resposta (S &#8594; R).</div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-term">Contingência</div>
+        <div class="concept-def">Relação de dependência entre o comportamento e suas consequências (R &#8594; C).</div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-term">Reforçamento</div>
+        <div class="concept-def">Consequência que aumenta a probabilidade futura do comportamento (positivo ou negativo).</div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-term">Punição</div>
+        <div class="concept-def">Consequência que reduz a probabilidade futura do comportamento (positiva ou negativa).</div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-term">Extinção</div>
+        <div class="concept-def">Suspensão do reforçamento que leva à redução gradual da frequência do comportamento.</div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-term">Modelagem</div>
+        <div class="concept-def">Reforçamento diferencial de aproximações sucessivas ao comportamento-alvo.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Material de estudo sobre Análise do Comportamento.
+    Baseado nos princípios do behaviorismo radical de B. F. Skinner e do condicionamento respondente de I. P. Pavlov.
+  </div>
+
+  <div class="footer-note" style="margin-top: 0; padding-top: 0;">
+    Feito com <span style="color: red;">❤️</span> por <a href="https://www.linkedin.com/in/obrunodelgado/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">Bruno Delgado</a>
+  </div>
+</div>
+
+</body>
+</html>
