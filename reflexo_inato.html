@@ -1,4 +1,11 @@
-
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reflexo Inato</title>
+</head>
+<body>
 <style>
     :root {
       --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
@@ -17,7 +24,7 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: var(--font-sans); color: var(--color-text-primary); background: var(--color-background-primary); }
-    .container { padding: 1rem 0; }
+    .container { padding: 1rem; max-width: 960px; margin: 0 auto; }
     
     .nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
     .nav-btn {
@@ -138,6 +145,51 @@
     .info-box { background: var(--color-background-info); border: 1px solid var(--color-border-info); border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 13px; color: var(--color-text-info); margin-bottom: 1rem; line-height: 1.5; }
     .hab-legend { display: flex; gap: 8px; margin-bottom: .5rem; flex-wrap: wrap; }
     .hab-tag { font-size: 12px; padding: 3px 10px; border-radius: var(--border-radius-md); font-weight: 500; }
+
+    @media (max-width: 600px) {
+      .container { padding: 0.75rem 0.5rem; }
+
+      .nav { gap: 6px; }
+      .nav-btn { padding: 7px 12px; font-size: 12px; }
+
+      .section-title { font-size: 15px; }
+      .section-sub { font-size: 12px; }
+
+      .ctrl-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+      }
+      .ctrl-row label { min-width: unset; font-size: 12px; }
+      .ctrl-row .val { min-width: unset; text-align: right; }
+
+      .metrics { grid-template-columns: 1fr; gap: 8px; }
+
+      .metric-value { font-size: 17px; }
+
+      .reflex-grid {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+      .arrow-box {
+        transform: rotate(90deg);
+        font-size: 18px;
+        padding: 2px 0;
+      }
+
+      .info-box { font-size: 12px; padding: 8px 10px; }
+
+      .chart-wrap { height: 200px !important; }
+
+      .legend-row { font-size: 11px; gap: 8px; }
+
+      select, .ctrl-row select { font-size: 12px; padding: 8px 28px 8px 10px; }
+    }
+
+    @media (min-width: 601px) and (max-width: 900px) {
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .ctrl-row label { min-width: 120px; }
+    }
     </style>
     
     <div class="container">
@@ -526,4 +578,6 @@
       updateReflex();
     });
     </script>
+</body>
+</html>
     
