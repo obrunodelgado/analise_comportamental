@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reflexo Aprendido</title>
+</head>
+<body>
+<style>
+:root {
+  --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --color-text-primary: #1a1a2e;
+  --color-text-secondary: #555770;
+  --color-text-info: #1a5fb4;
+  --color-text-success: #1a7d45;
+  --color-text-danger: #c4314b;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f4f5f7;
+  --color-background-info: #e8f0fe;
+  --color-background-success: #e6f4ec;
+  --color-background-warning: #fff4e0;
+  --color-border-secondary: #c4c7cf;
+  --color-border-tertiary: #dcdfe6;
+  --color-border-info: #a8c7f5;
+  --color-border-success: #8dcaaa;
+  --color-border-warning: #e0c68a;
+  --border-radius-md: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); color: var(--color-text-primary); background: var(--color-background-primary); }
+.w { padding: 1rem; max-width: 960px; margin: 0 auto; }
+.nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+.nb {
+  padding: 9px 18px;
+  border: 1.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-primary);
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+.nb.on {
+  background: var(--color-text-info);
+  color: #fff;
+  border-color: var(--color-text-info);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(26,95,180,.25);
+}
+.nb:hover:not(.on) {
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  border-color: #a0a4b0;
+  box-shadow: 0 2px 4px rgba(0,0,0,.08);
+}
+.panel { display: none; }
+.panel.on { display: block; }
+.ttl { font-size: 16px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 6px; }
+.sub { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1.2rem; line-height: 1.5; }
+.row { display: flex; align-items: center; gap: 12px; margin-bottom: .9rem; }
+.row label { font-size: 13px; color: var(--color-text-secondary); min-width: 160px; font-weight: 500; }
+.row input[type=range] { flex: 1; }
+.row .v { font-size: 13px; font-weight: 600; min-width: 60px; color: var(--color-text-primary); }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.2rem; }
+.card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 14px; border: 1px solid var(--color-border-tertiary); }
+.cl { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .04em; }
+.cv { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.cw { position: relative; width: 100%; margin-bottom: .8rem; }
+.cw canvas { width: 100% !important; }
+.info { background: var(--color-background-info); border: 1px solid var(--color-border-info); border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 13px; color: var(--color-text-info); margin-bottom: 1rem; line-height: 1.5; }
+.ok { background: var(--color-background-success); border: 1px solid var(--color-border-success); border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 13px; color: var(--color-text-success); margin-bottom: 1rem; line-height: 1.5; }
+.leg { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: .5rem; }
+.ld { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+.paradigm { display: grid; gap: 4px; align-items: center; margin: 1.2rem 0; }
+.pbox { background: var(--color-background-secondary); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 12px; text-align: center; }
+.pbox .pl { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
+.pbox .pv { font-size: 13px; font-weight: 500; color: var(--color-text-primary); line-height: 1.3; }
+.pbox.hi { border-color: var(--color-border-info); background: var(--color-background-info); }
+.pbox.hi .pl { color: var(--color-text-info); }
+.pbox.hi .pv { color: var(--color-text-info); }
+.arr { text-align: center; font-size: 18px; color: var(--color-text-secondary); }
+
+.sel {
+  flex: 1;
+  padding: 9px 32px 9px 12px;
+  border: 1.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23555770' d='M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+.sel:hover {
+  border-color: #888ba0;
+  box-shadow: 0 2px 4px rgba(0,0,0,.08);
+}
+.sel:focus {
+  outline: none;
+  border-color: var(--color-text-info);
+  box-shadow: 0 0 0 3px rgba(26,95,180,.15);
+}
+
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-border-tertiary);
+  outline: none;
+  transition: background .15s;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-text-info);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  cursor: pointer;
+  transition: transform .1s;
+}
+input[type=range]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+input[type=range]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-text-info);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  cursor: pointer;
+}
+
+.steps { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+.step {
+  padding: 7px 14px;
+  border: 1.5px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s ease;
+  color: var(--color-text-secondary);
+  background: var(--color-background-primary);
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+.step.on {
+  background: var(--color-text-info);
+  color: #fff;
+  border-color: var(--color-text-info);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(26,95,180,.25);
+}
+.step:hover:not(.on) {
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  border-color: #a0a4b0;
+  box-shadow: 0 2px 4px rgba(0,0,0,.08);
+}
+
+.hier { display: flex; flex-direction: column; gap: 6px; margin: 1rem 0; }
+.hitem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border-tertiary);
+  background: var(--color-background-secondary);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all .15s;
+}
+.hitem:hover { box-shadow: 0 2px 4px rgba(0,0,0,.08); }
+.hitem.ext { background: var(--color-background-success); border-color: var(--color-border-success); color: var(--color-text-success); }
+.hitem.act { background: var(--color-background-warning); border-color: var(--color-border-warning); color: #8a6d15; }
+.hbar { flex: 1; height: 8px; background: var(--color-border-tertiary); border-radius: 4px; overflow: hidden; }
+.hfill { height: 100%; border-radius: 4px; transition: width .4s ease; }
+.hnum { min-width: 30px; text-align: right; font-size: 12px; }
+
+@media (max-width: 600px) {
+  .w { padding: 0.75rem 0.5rem; }
+
+  .nav { gap: 6px; }
+  .nb { padding: 7px 12px; font-size: 12px; }
+
+  .ttl { font-size: 15px; }
+  .sub { font-size: 12px; }
+
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .row label { min-width: unset; font-size: 12px; }
+  .row .v { min-width: unset; text-align: right; }
+
+  .cards { grid-template-columns: 1fr; gap: 8px; }
+  .cv { font-size: 17px; }
+
+  .info, .ok { font-size: 12px; padding: 8px 10px; }
+
+  .cw { height: 200px !important; }
+
+  .leg { font-size: 11px; gap: 8px; }
+
+  .sel { font-size: 12px; padding: 8px 28px 8px 10px; }
+
+  .paradigm { grid-template-columns: 1fr !important; gap: 6px; }
+  .arr { transform: rotate(90deg); font-size: 16px; padding: 2px 0; }
+  .pbox .pv { font-size: 12px; }
+
+  .steps { gap: 6px; }
+  .step { padding: 5px 10px; font-size: 11px; }
+
+  .hitem { padding: 6px 10px; font-size: 12px; gap: 8px; }
+  .hitem span:first-child { min-width: 16px; font-size: 11px; }
+  .hitem span:nth-child(2) { font-size: 11px; }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .cards { grid-template-columns: repeat(2, 1fr); }
+  .row label { min-width: 130px; }
+}
+</style>
+
+<div class="w">
+<div class="nav">
+  <button class="nb on" onclick="show('paradigma')">O paradigma</button>
+  <button class="nb" onclick="show('empar')">Emparelhamento</button>
+  <button class="nb" onclick="show('extincao')">Extinção & rec. espontânea</button>
+  <button class="nb" onclick="show('generalizacao')">Generalização</button>
+  <button class="nb" onclick="show('desens')">Dessensibilização</button>
+  <button class="nb" onclick="show('ordsup')">Ordem superior</button>
+</div>
+
+<!-- PARADIGMA -->
+<div id="panel-paradigma" class="panel on">
+  <div class="ttl">O paradigma do condicionamento pavloviano</div>
+  <div class="sub">Escolha um exemplo clínico ou cotidiano para visualizar os três momentos do condicionamento: antes, durante e após.</div>
+  <div class="row"><label>Exemplo</label>
+  <select class="sel" id="par-sel" onchange="updatePar()">
+    <option value="0">Experimento de Pavlov (cão + sineta + carne)</option>
+    <option value="1">Pequeno Albert (bebê + rato + barulho)</option>
+    <option value="2">Medo de dentista (broca + dor)</option>
+    <option value="3">Medo de altura (queda + dor)</option>
+    <option value="4">Palavras e emoções ("burro" + punição)</option>
+    <option value="5">Excitação com velas (velas + carícias)</option>
+  </select></div>
+  <div id="par-step-btns" class="steps"></div>
+  <div id="par-info" class="info"></div>
+  <div class="paradigm" id="par-diagram"></div>
+  <div class="sub" id="par-explain" style="margin-top:.5rem"></div>
+</div>
+
+<!-- EMPARELHAMENTO -->
+<div id="panel-empar" class="panel">
+  <div class="ttl">Fatores que influenciam o condicionamento</div>
+  <div class="sub">Explore como frequência de emparelhamentos, intensidade do EI e preditividade do EN afetam a força da resposta condicionada.</div>
+  <div class="row"><label>Nº de emparelhamentos</label><input type="range" min="1" max="100" value="40" step="1" id="e-freq" oninput="updateEmpar()"><span class="v" id="e-freq-v">40</span></div>
+  <div class="row"><label>Intensidade do EI (0–100)</label><input type="range" min="0" max="100" value="60" step="1" id="e-us" oninput="updateEmpar()"><span class="v" id="e-us-v">60</span></div>
+  <div class="row"><label>Preditividade do EN (%)</label><input type="range" min="10" max="100" value="80" step="10" id="e-pred" oninput="updateEmpar()"><span class="v" id="e-pred-v">80%</span></div>
+  <div class="cards" id="empar-cards"></div>
+  <div id="empar-info" class="info"></div>
+  <div class="cw" style="height:240px"><canvas id="chart-empar"></canvas></div>
+  <div class="leg"><span><span class="ld" style="background:#378ADD"></span>Força da RC ao longo dos emparelhamentos</span></div>
+</div>
+
+<!-- EXTINÇÃO -->
+<div id="panel-extincao" class="panel">
+  <div class="ttl">Extinção respondente e recuperação espontânea</div>
+  <div class="sub">Visualize o que acontece quando o EC é apresentado sem o EI repetidamente — e o que ocorre após um intervalo de tempo.</div>
+  <div class="row"><label>Exemplo</label>
+    <select class="sel" id="ext-sel" onchange="updateExt()">
+      <option value="0">Medo do dentista (som da broca)</option>
+      <option value="1">Medo de cães (pastor alemão)</option>
+      <option value="2">Medo de dirigir na chuva</option>
+    </select>
+  </div>
+  <div class="row"><label>Força inicial da RC</label><input type="range" min="30" max="100" value="80" step="1" id="ext-ini" oninput="updateExt()"><span class="v" id="ext-ini-v">80</span></div>
+  <div class="row"><label>Intervalo antes da rec. esp.</label><input type="range" min="1" max="20" value="8" step="1" id="ext-int" oninput="updateExt()"><span class="v" id="ext-int-v">8 sessões</span></div>
+  <div class="cards" id="ext-cards"></div>
+  <div id="ext-info" class="info"></div>
+  <div class="cw" style="height:260px"><canvas id="chart-ext"></canvas></div>
+  <div class="leg">
+    <span><span class="ld" style="background:#378ADD"></span>Extinção respondente</span>
+    <span><span class="ld" style="background:#D85A30"></span>Recuperação espontânea</span>
+  </div>
+</div>
+
+<!-- GENERALIZAÇÃO -->
+<div id="panel-generalizacao" class="panel">
+  <div class="ttl">Generalização respondente e gradiente de generalização</div>
+  <div class="sub">Estímulos semelhantes ao EC também passam a eliciar a RC. Quanto maior a semelhança, maior a magnitude da resposta. Selecione o exemplo e ajuste a força do EC original.</div>
+  <div class="row"><label>Exemplo</label>
+    <select class="sel" id="gen-sel" onchange="updateGen()">
+      <option value="0">Medo de pastor alemão → outros cães</option>
+      <option value="1">Pequeno Albert: rato → objetos brancos/felpudos</option>
+      <option value="2">Medo de galinha → outras aves</option>
+      <option value="3">Medo de broca → outros barulhos similares</option>
+    </select>
+  </div>
+  <div class="row"><label>Magnitude do EC original</label><input type="range" min="20" max="100" value="80" step="1" id="gen-mag" oninput="updateGen()"><span class="v" id="gen-mag-v">80</span></div>
+  <div id="gen-info" class="info"></div>
+  <div class="cw" style="height:260px"><canvas id="chart-gen"></canvas></div>
+  <div class="leg"><span><span class="ld" style="background:#D85A30"></span>Magnitude da RC por grau de semelhança com o EC original</span></div>
+</div>
+
+<!-- DESSENSIBILIZAÇÃO -->
+<div id="panel-desens" class="panel">
+  <div class="ttl">Dessensibilização sistemática</div>
+  <div class="sub">Simulação passo a passo. Clique em cada item da hierarquia de ansiedade para "extingui-lo" progressivamente, como ocorre na terapia.</div>
+  <div class="row"><label>Fobia</label>
+    <select class="sel" id="des-sel" onchange="initDesens()">
+      <option value="0">Fobia de cães</option>
+      <option value="1">Fobia de altura</option>
+      <option value="2">Ansiedade de falar em público</option>
+    </select>
+  </div>
+  <div id="des-info" class="info"></div>
+  <div class="hier" id="des-hier"></div>
+  <div id="des-status" class="ok" style="display:none"></div>
+</div>
+
+<!-- ORDEM SUPERIOR -->
+<div id="panel-ordsup" class="panel">
+  <div class="ttl">Condicionamento de ordem superior</div>
+  <div class="sub">Um EC pode ser emparelhado a um novo EN, gerando um reflexo condicionado de 2ª ordem (e assim por diante). A força decresce a cada ordem.</div>
+  <div class="row"><label>Exemplo</label>
+    <select class="sel" id="os-sel" onchange="updateOS()">
+      <option value="0">Pavlov: sineta → quadro-negro → luz</option>
+      <option value="1">Música do casal → foto do cantor → nome do cantor</option>
+      <option value="2">Dentista: broca → jaleco branco → consultório</option>
+    </select>
+  </div>
+  <div id="os-info" class="info"></div>
+  <div class="cards" id="os-cards"></div>
+  <div class="cw" style="height:220px"><canvas id="chart-os"></canvas></div>
+  <div class="leg"><span><span class="ld" style="background:#1D9E75"></span>Força da resposta condicionada por ordem</span></div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+let charts={};
+function dstr(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+function show(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('panel-'+id).classList.add('on');
+  event.target.classList.add('on');
+  const fns={paradigma:()=>updatePar(),empar:()=>buildEmpar(),extincao:()=>buildExt(),generalizacao:()=>{buildGen();updateGen();},desens:()=>initDesens(),ordsup:()=>buildOS()};
+  setTimeout(()=>fns[id]&&fns[id](),50);
+}
+
+// ===== PARADIGMA =====
+// Siglas PT-BR: EN=estímulo neutro, EI=estímulo incondicionado, EC=estímulo condicionado, RI=resposta incondicionada, RC=resposta condicionada
+const parData=[
+  {steps:[{
+    s1:'Sineta (EN)',r1:'Nenhuma salivação',s2:'Carne (EI)',r2:'Salivação (RI)',s3:'Sineta (EC)',r3:'Salivação (RC)',
+    info1:'Antes: a sineta é um estímulo NEUTRO (EN) — não produz salivação. A carne é o estímulo incondicionado (EI).',
+    info2:'Durante: sineta (EN) + carne (EI) apresentados juntos. Repetido ~60 vezes (emparelhamento).',
+    info3:'Depois: a sineta agora é o EC e elicia salivação (RC) por si só. Reflexo condicionado estabelecido!'
+  }]},
+  {steps:[{
+    s1:'Rato (EN)',r1:'Sem medo',s2:'Barulho estridente (EI)',r2:'Susto/medo (RI)',s3:'Rato (EC)',r3:'Medo/choro (RC)',
+    info1:'Antes: o bebê Albert olhava e tentava tocar o rato sem apresentar medo. O rato era EN para medo.',
+    info2:'Durante: Watson emparelhava o rato (EN) com o barulho estridente (EI) repetidas vezes.',
+    info3:'Depois: o rato virou EC — Albert apresentava medo (RC) apenas ao vê-lo.'
+  }]},
+  {steps:[{
+    s1:'Som da broca (EN)',r1:'Sem reação de medo',s2:'Dor da obturação (EI)',r2:'Medo/dor (RI)',s3:'Som da broca (EC)',r3:'Ansiedade/medo (RC)',
+    info1:'Antes: o barulho da broca era EN — neutro para o paciente na primeira consulta.',
+    info2:'Durante: som da broca (EN) + dor do tratamento (EI) ocorrem juntos em cada consulta.',
+    info3:'Depois: o som da broca virou EC — basta ouvi-lo para sentir ansiedade (RC).'
+  }]},
+  {steps:[{
+    s1:'Visão da altura (EN)',r1:'Sem medo especial',s2:'Impacto/dor da queda (EI)',r2:'Medo/dor (RI)',s3:'Visão da altura (EC)',r3:'Medo intenso (RC)',
+    info1:'Antes: a visão de lugares altos era EN — sem medo condicionado.',
+    info2:'Durante: visão da altura (EN) emparelhada com a dor e o susto de uma queda (EI).',
+    info3:'Depois: visão da altura virou EC — olhar para baixo já elicia medo intenso (RC).'
+  }]},
+  {steps:[{
+    s1:'Palavra "burro" (EN)',r1:'Sem reação emocional',s2:'Punição/reprimenda (EI)',r2:'Medo/dor (RI)',s3:'Palavra "burro" (EC)',r3:'Ansiedade/mal-estar (RC)',
+    info1:'Antes: a palavra era apenas um som (EN), sem carga emocional para a criança.',
+    info2:'Durante: a palavra (EN) é dita repetidamente durante punições (EI) ao longo da infância.',
+    info3:'Depois: a palavra virou EC — ouvi-la elicia ansiedade (RC) mesmo sem punição real.'
+  }]},
+  {steps:[{
+    s1:'Velas (EN)',r1:'Sem excitação especial',s2:'Carícias do parceiro (EI)',r2:'Excitação (RI)',s3:'Velas (EC)',r3:'Excitação (RC)',
+    info1:'Antes: velas eram apenas objetos decorativos (EN) sem função emocional especial.',
+    info2:'Durante: velas (EN) presentes repetidamente durante momentos íntimos (EI).',
+    info3:'Depois: velas viraram EC — a simples visão delas elicia excitação (RC).'
+  }]}
+];
+let parStep=0;
+function updatePar(){
+  const idx=parseInt(document.getElementById('par-sel').value);
+  const d=parData[idx].steps[0];
+  const btns=document.getElementById('par-step-btns');
+  btns.innerHTML=['Antes do condicionamento','Durante o condicionamento','Depois do condicionamento'].map((t,i)=>`<button class="step${parStep===i?' on':''}" onclick="setParStep(${i})">${t}</button>`).join('');
+  renderParStep(d,parStep);
+}
+function setParStep(i){parStep=i;updatePar();}
+function renderParStep(d,step){
+  document.getElementById('par-info').textContent=[d.info1,d.info2,d.info3][step];
+  const diag=document.getElementById('par-diagram');
+  diag.style.gridTemplateColumns='1fr 40px 1fr';
+  if(step===0){
+    diag.innerHTML=`
+      <div class="pbox"><div class="pl">EN (estímulo neutro)</div><div class="pv">${d.s1}</div></div><div class="arr">→✗</div><div class="pbox"><div class="pl">Resposta</div><div class="pv">${d.r1}</div></div>
+      <div></div><div></div><div></div>
+      <div class="pbox hi"><div class="pl">EI (estímulo incondicionado)</div><div class="pv">${d.s2}</div></div><div class="arr">→</div><div class="pbox hi"><div class="pl">RI (resposta incondicionada)</div><div class="pv">${d.r2}</div></div>
+    `;
+  } else if(step===1){
+    diag.innerHTML=`
+      <div class="pbox hi"><div class="pl">EN + EI (emparelhamento)</div><div class="pv">${d.s1}<br>+<br>${d.s2}</div></div><div class="arr">→</div><div class="pbox hi"><div class="pl">RI (eliciada pelo EI)</div><div class="pv">${d.r2}</div></div>
+    `;
+  } else {
+    diag.innerHTML=`
+      <div class="pbox hi"><div class="pl">EC (antigo EN)</div><div class="pv">${d.s3}</div></div><div class="arr">→</div><div class="pbox hi"><div class="pl">RC (resposta condicionada)</div><div class="pv">${d.r3}</div></div>
+    `;
+  }
+}
+
+// ===== EMPARELHAMENTO =====
+let emparChart=null;
+function updateEmpar(){
+  const freq=parseInt(document.getElementById('e-freq').value);
+  const us=parseInt(document.getElementById('e-us').value);
+  const pred=parseInt(document.getElementById('e-pred').value);
+  document.getElementById('e-freq-v').textContent=freq;
+  document.getElementById('e-us-v').textContent=us;
+  document.getElementById('e-pred-v').textContent=pred+'%';
+  const forca=Math.round(Math.min(100,freq*0.6*(us/100)*(pred/100)*1.8));
+  const vel=Math.round(us/10);
+  document.getElementById('empar-cards').innerHTML=`
+    <div class="card"><div class="cl">Força da RC</div><div class="cv">${forca}%</div></div>
+    <div class="card"><div class="cl">Velocidade do cond.</div><div class="cv">${vel}/10</div></div>
+    <div class="card"><div class="cl">Preditividade EN</div><div class="cv">${pred}%</div></div>
+  `;
+  let msg=forca<30?'Condicionamento fraco: poucos emparelhamentos, EI fraco ou EN pouco preditivo.':forca<60?'Condicionamento moderado. Aumente a frequência de emparelhamentos ou a intensidade do EI.':'Condicionamento forte! Alta frequência de emparelhamentos com EI intenso e EN preditivo.';
+  document.getElementById('empar-info').textContent=msg;
+  if(emparChart){
+    const xs=Array.from({length:freq},(_,i)=>i+1);
+    emparChart.data.labels=xs.map(x=>x%10===0?x:'');
+    emparChart.data.datasets[0].data=xs.map(x=>Math.round(Math.min(forca,x*(forca/freq)*1.3*(0.85+Math.random()*0.3))));
+    emparChart.update('none');
+  }
+}
+function buildEmpar(){
+  dstr('empar');
+  const ctx=document.getElementById('chart-empar').getContext('2d');
+  emparChart=new Chart(ctx,{type:'line',data:{labels:[],datasets:[{label:'Força RC',data:[],borderColor:'#378ADD',backgroundColor:'#378ADD18',tension:.4,pointRadius:0,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Número de emparelhamentos',color:'#888',font:{size:11}}},y:{min:0,max:100,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Força da RC (%)',color:'#888',font:{size:11}}}}}});
+  charts['empar']=emparChart;
+  updateEmpar();
+}
+
+// ===== EXTINÇÃO =====
+const extEx=[
+  {cs:'EC: Som da broca',desc:'EC (som da broca) apresentado em consultas de limpeza sem dor (EI ausente). A RC de medo vai diminuindo a cada consulta.'},
+  {cs:'EC: Pastor alemão',desc:'EC (cão) apresentado sem incidentes. A RC de medo decresce a cada encontro tranquilo sem o EI original.'},
+  {cs:'EC: Dirigir na chuva',desc:'EC (dirigir na chuva) apresentado repetidamente sem acidentes (EI ausente). A RC de ansiedade diminui progressivamente.'}
+];
+let extChart=null;
+function updateExt(){
+  const idx=parseInt(document.getElementById('ext-sel').value);
+  const ini=parseInt(document.getElementById('ext-ini').value);
+  const intv=parseInt(document.getElementById('ext-int').value);
+  document.getElementById('ext-ini-v').textContent=ini;
+  document.getElementById('ext-int-v').textContent=intv+' sessões';
+  document.getElementById('ext-info').textContent=extEx[idx].desc;
+  const n1=15,n2=10;
+  const ext1=Array.from({length:n1},(_,i)=>Math.round(Math.max(5,ini*Math.pow(0.82,i))));
+  const recBase=Math.round(ext1[n1-1]*1.7);
+  const ext2=Array.from({length:n2},(_,i)=>Math.round(Math.max(5,recBase*Math.pow(0.80,i))));
+  document.getElementById('ext-cards').innerHTML=`
+    <div class="card"><div class="cl">Força inicial da RC</div><div class="cv">${ini}</div></div>
+    <div class="card"><div class="cl">Após extinção 1</div><div class="cv">${ext1[n1-1]}</div></div>
+    <div class="card"><div class="cl">Rec. espontânea</div><div class="cv">${recBase}</div></div>
+  `;
+  if(extChart){
+    extChart.data.labels=[...Array.from({length:n1},(_,i)=>'S'+(i+1)),...Array(intv).fill(''),...Array.from({length:n2},(_,i)=>'R'+(i+1))];
+    extChart.data.datasets[0].data=[...ext1,...Array(intv+n2).fill(null)];
+    extChart.data.datasets[1].data=[...Array(n1+intv).fill(null),...ext2];
+    extChart.update('none');
+  }
+}
+function buildExt(){
+  dstr('ext');
+  const ctx=document.getElementById('chart-ext').getContext('2d');
+  extChart=new Chart(ctx,{type:'line',data:{labels:[],datasets:[
+    {label:'Extinção',data:[],borderColor:'#378ADD',backgroundColor:'#378ADD18',tension:.4,pointRadius:3,fill:true,spanGaps:false},
+    {label:'Rec. espontânea',data:[],borderColor:'#D85A30',backgroundColor:'#D85A3018',tension:.4,pointRadius:3,fill:true,borderDash:[5,3],spanGaps:false}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888',maxRotation:0,autoSkip:true,maxTicksLimit:15},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Sessões / Apresentações do EC sem EI',color:'#888',font:{size:11}}},y:{min:0,max:105,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Força da RC',color:'#888',font:{size:11}}}}}});
+  charts['ext']=extChart;
+  updateExt();
+}
+
+// ===== GENERALIZAÇÃO =====
+const genEx=[
+  {items:['Pastor alemão (EC original)','Husky siberiano','Labrador','Golden retriever','Poodle','Poodle miniatura','Cachorro de pelúcia'],desc:'Quanto mais diferente do pastor alemão (EC), menor a magnitude da RC de medo condicionado.'},
+  {items:['Rato albino (EC original)','Coelho branco','Cachorro branco','Casaco de pele branco','Barba branca','Algodão branco','Pompon colorido'],desc:'Albert passou a ter RC de medo para objetos fisicamente semelhantes ao rato: mesma textura, cor e forma.'},
+  {items:['Galinha (EC original)','Galo','Peru','Pato','Ganso','Arara colorida','Pinguim'],desc:'Medo de galinha (EC) generalizado para diversas aves — quanto mais diferente da galinha, menor a RC.'},
+  {items:['Som da broca (EC)','Som de furadeira','Som de liquidificador','Som de secador','Som de jato de ar','Som de papel rasgando','Barulho leve'],desc:'A RC de medo ao EC (broca) generaliza para outros sons similares em frequência e intensidade.'}
+];
+let genChart=null;
+function updateGen(){
+  const idx=parseInt(document.getElementById('gen-sel').value);
+  const mag=parseInt(document.getElementById('gen-mag').value);
+  document.getElementById('gen-mag-v').textContent=mag;
+  const e=genEx[idx];
+  document.getElementById('gen-info').textContent=e.desc;
+  const decay=[1,.85,.70,.55,.38,.22,.10];
+  const vals=e.items.map((_,i)=>Math.round(mag*decay[i]));
+  if(genChart){
+    genChart.data.labels=e.items;
+    genChart.data.datasets[0].data=vals;
+    genChart.data.datasets[0].backgroundColor=vals.map(v=>`rgba(216,90,48,${0.3+v/mag*0.7})`);
+    genChart.update('none');
+  }
+}
+function buildGen(){
+  dstr('gen');
+  const ctx=document.getElementById('chart-gen').getContext('2d');
+  genChart=new Chart(ctx,{type:'bar',data:{labels:[],datasets:[{label:'Magnitude RC',data:[],backgroundColor:[],borderColor:'#D85A30',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888',font:{size:11},maxRotation:30},grid:{color:'rgba(128,128,128,.07)'}},y:{min:0,max:105,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Magnitude da RC',color:'#888',font:{size:11}}}}}});
+  charts['gen']=genChart;
+  updateGen();
+}
+
+// ===== DESSENSIBILIZAÇÃO =====
+const desData=[
+  {info:'Hierarquia de ansiedade para fobia de cães. O EC original é o cão que atacou. Clique em cada item para extingui-lo.',items:['Ver fotos de cães em revista','Tocar pelúcia em formato de cão','Ver vídeos de cães calmos','Observar cão de longe (raça diferente)','Observar cão de perto (raça diferente)','Observar de longe cão similar ao EC','Observar de perto cão similar ao EC','Interagir com cão similar ao EC original'],mags:[10,20,30,42,55,65,78,90]},
+  {info:'Hierarquia de ansiedade para fobia de altura. Cada passo expõe gradativamente a estímulos mais similares ao EC original (local da queda).',items:['Imaginar estar em lugar alto','Ver fotos de lugares altos','Ver vídeos de lugares altos','Subir 1 andar de escada','Subir 3 andares de escada','Ficar à janela do 5º andar','Ficar à janela do 10º andar','Ficar na beira de um terraço'],mags:[10,18,28,40,54,66,79,92]},
+  {info:'Hierarquia de ansiedade para falar em público. EC = situações de fala pública associadas a experiências constrangedoras passadas.',items:['Falar para si mesmo no espelho','Falar para um amigo íntimo','Falar para 3 amigos próximos','Apresentar para um grupo de colegas','Falar para uma turma conhecida','Falar para uma turma desconhecida','Discurso em reunião profissional','Apresentação em auditório para desconhecidos'],mags:[8,16,26,38,52,65,78,90]}
+];
+let desState=[];
+function initDesens(){
+  const idx=parseInt(document.getElementById('des-sel').value);
+  document.getElementById('des-info').textContent=desData[idx].info;
+  desState=desData[idx].items.map(()=>false);
+  renderHier();
+}
+function renderHier(){
+  const idx=parseInt(document.getElementById('des-sel').value);
+  const d=desData[idx];
+  const nextIdx=desState.findIndex(v=>!v);
+  const allDone=desState.every(Boolean);
+  document.getElementById('des-hier').innerHTML=d.items.map((item,i)=>{
+    const done=desState[i];
+    const active=i===nextIdx&&!allDone;
+    const mag=d.mags[i];
+    const cls=done?'hitem ext':active?'hitem act':'hitem';
+    return `<div class="${cls}" onclick="extItem(${i})">
+      <span style="min-width:20px;font-size:12px;font-weight:500">${i+1}</span>
+      <span style="flex:1;font-size:12px">${item}</span>
+      <div class="hbar"><div class="hfill" style="width:${done?0:mag}%;background:${done?'#1D9E75':active?'#BA7517':'#378ADD'}"></div></div>
+      <span class="hnum">${done?'✓':mag}</span>
+    </div>`;
+  }).join('');
+  const st=document.getElementById('des-status');
+  if(allDone){st.style.display='block';st.textContent='Tratamento concluído! Todos os ECs da hierarquia foram extintos. O cliente está pronto para exposição ao EC original.';}
+  else{st.style.display='none';}
+}
+function extItem(i){
+  if(i!==desState.findIndex(v=>!v))return;
+  desState[i]=true;
+  renderHier();
+}
+
+// ===== ORDEM SUPERIOR =====
+const osData=[
+  {info:'Pavlov: carne (EI) → sineta (EC 1ª ordem) → quadro-negro (EC 2ª ordem) → luz (EC 3ª ordem). A força da RC decresce a cada nova ordem.',labels:['Carne (EI)','Sineta (EC 1ª)','Quadro-negro (EC 2ª)','Luz (EC 3ª)'],base:[100,85,50,20]},
+  {info:'Música do casal (EC 1ª) → foto do cantor (EC 2ª) → nome do cantor (EC 3ª). Cada emparelhamento posterior gera RC mais fraca.',labels:['Carícias (EI)','Música do casal (EC 1ª)','Foto do cantor (EC 2ª)','Nome do cantor (EC 3ª)'],base:[100,82,48,18]},
+  {info:'Medo do dentista: dor (EI) → broca (EC 1ª) → jaleco branco (EC 2ª) → consultório (EC 3ª). Cada ordem gera RC de magnitude menor.',labels:['Dor da broca (EI)','Som da broca (EC 1ª)','Jaleco branco (EC 2ª)','Consultório (EC 3ª)'],base:[100,88,55,25]}
+];
+let osChart=null;
+function updateOS(){
+  const idx=parseInt(document.getElementById('os-sel').value);
+  const d=osData[idx];
+  document.getElementById('os-info').textContent=d.info;
+  document.getElementById('os-cards').innerHTML=d.labels.map((l,i)=>`<div class="card"><div class="cl">${l}</div><div class="cv">${d.base[i]}%</div></div>`).join('');
+  if(osChart){
+    osChart.data.labels=d.labels;
+    osChart.data.datasets[0].data=d.base;
+    osChart.data.datasets[0].backgroundColor=d.base.map((_,i)=>`rgba(29,158,117,${1-i*0.18})`);
+    osChart.update('none');
+  }
+}
+function buildOS(){
+  dstr('os');
+  const ctx=document.getElementById('chart-os').getContext('2d');
+  osChart=new Chart(ctx,{type:'bar',data:{labels:[],datasets:[{label:'Força (%)',data:[],backgroundColor:[],borderColor:'#1D9E75',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888',font:{size:11}},grid:{color:'rgba(128,128,128,.07)'}},y:{min:0,max:110,ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Força da RC (%)',color:'#888',font:{size:11}}}}}});
+  charts['os']=osChart;
+  updateOS();
+}
+
+window.addEventListener('load',()=>{parStep=0;updatePar();});
+</script>
+</body>
+</html>
