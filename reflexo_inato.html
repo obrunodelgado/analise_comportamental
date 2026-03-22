@@ -1,0 +1,422 @@
+
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-sans); }
+    .container { padding: 1rem 0; }
+    .nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+    .nav-btn { padding: 7px 14px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; color: var(--color-text-secondary); font-size: 13px; cursor: pointer; transition: all .15s; }
+    .nav-btn.active { background: var(--color-background-info); color: var(--color-text-info); border-color: var(--color-border-info); font-weight: 500; }
+    .nav-btn:hover:not(.active) { background: var(--color-background-secondary); color: var(--color-text-primary); }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .section-title { font-size: 16px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 6px; }
+    .section-sub { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1.2rem; line-height: 1.5; }
+    .ctrl-row { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
+    .ctrl-row label { font-size: 13px; color: var(--color-text-secondary); min-width: 140px; }
+    .ctrl-row input[type=range] { flex: 1; }
+    .ctrl-row .val { font-size: 13px; font-weight: 500; min-width: 60px; color: var(--color-text-primary); }
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.2rem; }
+    .metric-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 14px; }
+    .metric-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .04em; }
+    .metric-value { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+    .chart-wrap { position: relative; width: 100%; margin-bottom: 1rem; }
+    .chart-wrap canvas { width: 100% !important; }
+    .legend-row { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: .5rem; }
+    .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+    .reflex-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin: 1.2rem 0; }
+    .reflex-box { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 12px 14px; text-align: center; }
+    .reflex-box .rb-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .04em; }
+    .reflex-box .rb-val { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+    .arrow-box { text-align: center; font-size: 22px; color: var(--color-text-secondary); }
+    .info-box { background: var(--color-background-info); border: 0.5px solid var(--color-border-info); border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 13px; color: var(--color-text-info); margin-bottom: 1rem; line-height: 1.5; }
+    .hab-legend { display: flex; gap: 8px; margin-bottom: .5rem; flex-wrap: wrap; }
+    .hab-tag { font-size: 12px; padding: 3px 10px; border-radius: var(--border-radius-md); font-weight: 500; }
+    </style>
+    
+    <div class="container">
+      <div class="nav">
+        <button class="nav-btn active" onclick="show('reflex')">Reflexo inato</button>
+        <button class="nav-btn" onclick="show('leis')">Leis do reflexo</button>
+        <button class="nav-btn" onclick="show('habsens')">Habituação & sensibilização</button>
+        <button class="nav-btn" onclick="show('emocoes')">Reflexo & emoções</button>
+      </div>
+    
+      <!-- PANEL 1: reflexo -->
+      <div id="panel-reflex" class="panel active">
+        <div class="section-title">O que é um reflexo inato?</div>
+        <div class="section-sub">Um reflexo é uma relação condicional entre estímulo (mudança no ambiente) e resposta (mudança no organismo). Selecione um reflexo para visualizar essa relação.</div>
+        <div class="ctrl-row">
+          <label>Escolha um reflexo</label>
+          <select id="reflex-sel" onchange="updateReflex()" style="flex:1; padding:6px 10px; border:0.5px solid var(--color-border-secondary); border-radius:var(--border-radius-md); background:var(--color-background-primary); color:var(--color-text-primary); font-size:13px;">
+            <option value="0">Martelo no joelho → extensão da perna</option>
+            <option value="1">Luz forte no olho → contração da pupila</option>
+            <option value="2">Barulho alto → sobressalto</option>
+            <option value="3">Calor intenso → sudorese</option>
+            <option value="4">Alimento na boca → salivação</option>
+            <option value="5">Toque na boca do bebê → sucção</option>
+          </select>
+        </div>
+        <div class="reflex-grid">
+          <div class="reflex-box"><div class="rb-label">Estímulo (S)</div><div class="rb-val" id="r-stim">—</div></div>
+          <div class="arrow-box">→</div>
+          <div class="reflex-box"><div class="rb-label">Resposta (R)</div><div class="rb-val" id="r-resp">—</div></div>
+        </div>
+        <div class="info-box" id="r-info"></div>
+        <div class="section-title" style="margin-top:1rem;">Intensidade do estímulo → magnitude da resposta</div>
+        <div class="section-sub" style="margin-top:4px;">Arraste o slider para ver como a intensidade do estímulo afeta a magnitude da resposta em tempo real.</div>
+        <div class="ctrl-row">
+          <label id="int-label">Intensidade (dB)</label>
+          <input type="range" min="0" max="100" value="50" id="int-slider" step="1" oninput="updateIntMag()">
+          <span class="val" id="int-val">50</span>
+        </div>
+        <div class="metrics">
+          <div class="metric-card"><div class="metric-label">Intensidade</div><div class="metric-value" id="m-int">50</div></div>
+          <div class="metric-card"><div class="metric-label">Magnitude</div><div class="metric-value" id="m-mag">—</div></div>
+          <div class="metric-card"><div class="metric-label">Latência</div><div class="metric-value" id="m-lat">—</div></div>
+        </div>
+        <div class="chart-wrap" style="height:220px"><canvas id="chart-intmag"></canvas></div>
+        <div class="legend-row">
+          <span><span class="legend-dot" style="background:#378ADD"></span>Magnitude da resposta</span>
+          <span><span class="legend-dot" style="background:#D85A30"></span>Latência da resposta</span>
+        </div>
+      </div>
+    
+      <!-- PANEL 2: leis -->
+      <div id="panel-leis" class="panel">
+        <div class="section-title">Três leis do reflexo inato</div>
+        <div class="section-sub">Escolha uma lei para explorar seu mecanismo com o simulador interativo.</div>
+        <div class="ctrl-row" style="margin-bottom:1rem;">
+          <label>Lei</label>
+          <select id="lei-sel" onchange="updateLei()" style="flex:1; padding:6px 10px; border:0.5px solid var(--color-border-secondary); border-radius:var(--border-radius-md); background:var(--color-background-primary); color:var(--color-text-primary); font-size:13px;">
+            <option value="int">Lei da intensidade-magnitude</option>
+            <option value="lim">Lei do limiar</option>
+            <option value="lat">Lei da latência</option>
+          </select>
+        </div>
+        <div class="info-box" id="lei-info"></div>
+        <div class="ctrl-row">
+          <label id="lei-ctrl-label">Intensidade do estímulo</label>
+          <input type="range" min="0" max="100" value="50" id="lei-slider" step="1" oninput="updateLeiSim()">
+          <span class="val" id="lei-val">50</span>
+        </div>
+        <div class="metrics" id="lei-metrics">
+          <div class="metric-card"><div class="metric-label" id="lm1l">Intensidade</div><div class="metric-value" id="lm1v">50</div></div>
+          <div class="metric-card"><div class="metric-label" id="lm2l">Magnitude</div><div class="metric-value" id="lm2v">—</div></div>
+          <div class="metric-card"><div class="metric-label" id="lm3l">Elicia resp?</div><div class="metric-value" id="lm3v">—</div></div>
+        </div>
+        <div class="chart-wrap" style="height:240px"><canvas id="chart-lei"></canvas></div>
+        <div class="legend-row" id="lei-legend"></div>
+      </div>
+    
+      <!-- PANEL 3: hab/sens -->
+      <div id="panel-habsens" class="panel">
+        <div class="section-title">Efeitos de eliciações sucessivas</div>
+        <div class="section-sub">Quando um mesmo estímulo é apresentado repetidamente, a resposta pode diminuir (habituação) ou aumentar (sensibilização). Escolha o processo e o intervalo entre estímulos.</div>
+        <div class="ctrl-row">
+          <label>Processo</label>
+          <select id="hs-proc" onchange="updateHS()" style="flex:1; padding:6px 10px; border:0.5px solid var(--color-border-secondary); border-radius:var(--border-radius-md); background:var(--color-background-primary); color:var(--color-text-primary); font-size:13px;">
+            <option value="hab">Habituação (ex: som repetido — 16s intervalo)</option>
+            <option value="sens">Sensibilização (ex: som repetido — 2s intervalo)</option>
+            <option value="esq">Estudo de Geyer & Braff (1982): esquizofrenia</option>
+          </select>
+        </div>
+        <div class="info-box" id="hs-info"></div>
+        <div class="hab-legend" id="hs-legend"></div>
+        <div class="chart-wrap" style="height:260px"><canvas id="chart-hs"></canvas></div>
+        <div class="section-sub" style="margin-top:.8rem;" id="hs-conclusion"></div>
+      </div>
+    
+      <!-- PANEL 4: emocoes -->
+      <div id="panel-emocoes" class="panel">
+        <div class="section-title">Reflexo e emoções</div>
+        <div class="section-sub">Parte das emoções são respostas reflexas a estímulos ambientais. Selecione uma emoção para ver as respostas fisiológicas envolvidas.</div>
+        <div class="ctrl-row">
+          <label>Emoção</label>
+          <select id="em-sel" onchange="updateEmo()" style="flex:1; padding:6px 10px; border:0.5px solid var(--color-border-secondary); border-radius:var(--border-radius-md); background:var(--color-background-primary); color:var(--color-text-primary); font-size:13px;">
+            <option value="medo">Medo</option>
+            <option value="susto">Susto (sobressalto)</option>
+            <option value="ansiedade">Ansiedade (falar em público)</option>
+            <option value="excitacao">Excitação</option>
+          </select>
+        </div>
+        <div class="info-box" id="em-stim"></div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap:10px; margin-bottom:1.2rem;" id="em-cards"></div>
+        <div class="chart-wrap" style="height:240px"><canvas id="chart-emo"></canvas></div>
+        <div class="legend-row">
+          <span><span class="legend-dot" style="background:#1D9E75"></span>Magnitude da resposta fisiológica</span>
+        </div>
+      </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <script>
+    const reflexData = [
+      { stim:'Martelo no joelho', resp:'Extensão da perna', intLabel:'Força da batida (N)', magUnit:'ângulo (graus)', info:'Reflexo patelar: a batida elicia a extensão da perna. Clássico exemplo usado em consultas médicas para avaliar a integridade do sistema nervoso.', limiar:20 },
+      { stim:'Luz intensa no olho', resp:'Contração da pupila', intLabel:'Luminosidade (lux)', magUnit:'contração (mm)', info:'Reflexo pupilar: quanto mais intensa a luz, mais a pupila se contrai — protegendo a retina do excesso de luminosidade.', limiar:10 },
+      { stim:'Barulho alto', resp:'Sobressalto', intLabel:'Intensidade sonora (dB)', magUnit:'contração musc. (mm)', info:'Reflexo de sobressalto acústico: estímulos sonoros súbitos e intensos eliciam contrações musculares rápidas, especialmente piscar dos olhos.', limiar:30 },
+      { stim:'Calor intenso', resp:'Sudorese', intLabel:'Temperatura (°C acima do normal)', magUnit:'suor (mL)', info:'Reflexo termorregulador: o organismo regula sua temperatura produzindo suor quando exposto ao calor — resposta vital para sobrevivência.', limiar:15 },
+      { stim:'Alimento na boca', resp:'Salivação', intLabel:'Quantidade de alimento (g)', magUnit:'saliva (mL)', info:'Reflexo salivar: a presença de alimento na boca desencadeia a produção de saliva, iniciando o processo digestivo.', limiar:5 },
+      { stim:'Toque na boca do bebê', resp:'Sucção', intLabel:'Pressão do toque (unidades)', magUnit:'força de sucção', info:'Reflexo de sucção: presente desde o nascimento (inclusive intrauterino), permite ao recém-nascido se alimentar sem aprendizagem prévia.', limiar:8 },
+    ];
+    
+    let intMagChart, leiChart, hsChart, emoChart;
+    let currentReflex = 0;
+    
+    function show(id) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('panel-'+id).classList.add('active');
+      event.target.classList.add('active');
+      if(id==='reflex') { setTimeout(()=>{ buildIntMagChart(); updateReflex(); },50); }
+      if(id==='leis') { setTimeout(()=>{ buildLeiChart(); updateLei(); },50); }
+      if(id==='habsens') { setTimeout(()=>{ buildHSChart(); updateHS(); },50); }
+      if(id==='emocoes') { setTimeout(()=>{ buildEmoChart(); updateEmo(); },50); }
+    }
+    
+    function calcMag(intVal, reflexIdx) {
+      const r = reflexData[reflexIdx];
+      if(intVal < r.limiar) return 0;
+      const effective = intVal - r.limiar;
+      return Math.round(Math.min(effective * 0.9, 80));
+    }
+    function calcLat(intVal, reflexIdx) {
+      const r = reflexData[reflexIdx];
+      if(intVal < r.limiar) return '—';
+      return Math.max(50, Math.round(500 - intVal*4.2)) + 'ms';
+    }
+    function calcLatNum(intVal) { return Math.max(50, Math.round(500 - intVal*4.2)); }
+    
+    function updateReflex() {
+      currentReflex = parseInt(document.getElementById('reflex-sel').value);
+      const r = reflexData[currentReflex];
+      document.getElementById('r-stim').textContent = r.stim;
+      document.getElementById('r-resp').textContent = r.resp;
+      document.getElementById('r-info').textContent = r.info;
+      document.getElementById('int-label').textContent = r.intLabel;
+      updateIntMag();
+    }
+    function updateIntMag() {
+      const v = parseInt(document.getElementById('int-slider').value);
+      document.getElementById('int-val').textContent = v;
+      const mag = calcMag(v, currentReflex);
+      const lat = calcLat(v, currentReflex);
+      const r = reflexData[currentReflex];
+      document.getElementById('m-int').textContent = v + (r.intLabel.includes('dB') ? ' dB' : '');
+      document.getElementById('m-mag').textContent = mag > 0 ? mag + ' ' + r.magUnit : '0 (abaixo do limiar)';
+      document.getElementById('m-lat').textContent = lat;
+      if(intMagChart) {
+        const xs = Array.from({length:101},(_,i)=>i);
+        intMagChart.data.datasets[0].data = xs.map(x=>calcMag(x, currentReflex));
+        intMagChart.data.datasets[1].data = xs.map(x=>x < r.limiar ? null : calcLatNum(x));
+        intMagChart.data.datasets[2].data = Array(101).fill(null).map((_,i)=>i===v?calcMag(v,currentReflex):null);
+        intMagChart.update('none');
+      }
+    }
+    function buildIntMagChart() {
+      if(intMagChart) { intMagChart.destroy(); intMagChart=null; }
+      const ctx = document.getElementById('chart-intmag').getContext('2d');
+      const xs = Array.from({length:101},(_,i)=>i);
+      const r = reflexData[currentReflex];
+      intMagChart = new Chart(ctx, {
+        data: {
+          labels: xs,
+          datasets: [
+            { type:'line', label:'Magnitude', data: xs.map(x=>calcMag(x,currentReflex)), borderColor:'#378ADD', backgroundColor:'rgba(55,138,221,.08)', tension:.4, pointRadius:0, fill:true, yAxisID:'y' },
+            { type:'line', label:'Latência (ms)', data: xs.map(x=>x<reflexData[currentReflex].limiar?null:calcLatNum(x)), borderColor:'#D85A30', tension:.4, pointRadius:0, borderDash:[4,3], yAxisID:'y2' },
+            { type:'scatter', label:'Ponto atual', data: [], backgroundColor:'#378ADD', pointRadius:6, yAxisID:'y' }
+          ]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{ ticks:{maxTicksLimit:11, color:'#888'}, grid:{color:'rgba(128,128,128,.1)'}, title:{display:true,text:'Intensidade do estímulo',color:'#888',font:{size:11}} },
+            y:{ ticks:{color:'#888'}, grid:{color:'rgba(128,128,128,.1)'}, title:{display:true,text:'Magnitude',color:'#888',font:{size:11}}, min:0 },
+            y2:{ position:'right', ticks:{color:'#D85A30'}, grid:{display:false}, title:{display:true,text:'Latência (ms)',color:'#D85A30',font:{size:11}} }
+          }
+        }
+      });
+      updateIntMag();
+    }
+    
+    const leiTexts = {
+      int: 'Lei da intensidade-magnitude: quanto maior a intensidade do estímulo, maior a magnitude da resposta (relação diretamente proporcional). Ex: quanto mais alto o barulho, maior o susto.',
+      lim: 'Lei do limiar: existe uma intensidade mínima do estímulo (limiar) abaixo da qual a resposta não é eliciada. Cada organismo pode ter um limiar diferente para o mesmo reflexo.',
+      lat: 'Lei da latência: quanto maior a intensidade do estímulo, menor o tempo entre o estímulo e a resposta (latência). Intensidade e latência são inversamente proporcionais.'
+    };
+    function updateLei() {
+      const lei = document.getElementById('lei-sel').value;
+      document.getElementById('lei-info').textContent = leiTexts[lei];
+      buildLeiChart();
+      updateLeiSim();
+    }
+    function updateLeiSim() {
+      const v = parseInt(document.getElementById('lei-slider').value);
+      document.getElementById('lei-val').textContent = v;
+      const lei = document.getElementById('lei-sel').value;
+      const limiar = 30;
+      if(lei==='int') {
+        const mag = v < limiar ? 0 : Math.round((v-limiar)*0.9);
+        document.getElementById('lm1l').textContent = 'Intensidade'; document.getElementById('lm1v').textContent = v;
+        document.getElementById('lm2l').textContent = 'Magnitude'; document.getElementById('lm2v').textContent = mag;
+        document.getElementById('lm3l').textContent = 'Proporcional'; document.getElementById('lm3v').textContent = v>limiar ? 'Sim' : 'Abaixo limiar';
+      } else if(lei==='lim') {
+        const elicia = v >= limiar;
+        document.getElementById('lm1l').textContent = 'Intensidade'; document.getElementById('lm1v').textContent = v;
+        document.getElementById('lm2l').textContent = 'Limiar'; document.getElementById('lm2v').textContent = limiar;
+        document.getElementById('lm3l').textContent = 'Elicia resp?'; document.getElementById('lm3v').textContent = elicia ? 'Sim' : 'Não';
+        document.getElementById('lm3v').style.color = elicia ? 'var(--color-text-success)' : 'var(--color-text-danger)';
+      } else {
+        const lat = v < limiar ? '—' : Math.max(50, Math.round(500-v*4.2))+'ms';
+        document.getElementById('lm1l').textContent = 'Intensidade'; document.getElementById('lm1v').textContent = v;
+        document.getElementById('lm2l').textContent = 'Latência'; document.getElementById('lm2v').textContent = lat;
+        document.getElementById('lm3l').textContent = 'Inversamente prop.'; document.getElementById('lm3v').textContent = v>limiar?'Sim':'—';
+      }
+      if(leiChart) {
+        const xs = Array.from({length:101},(_,i)=>i);
+        const limiar=30;
+        if(lei==='int') {
+          leiChart.data.datasets[0].data = xs.map(x=>x<limiar?0:Math.round((x-limiar)*0.9));
+          leiChart.data.datasets[1].data = xs.map((_,i)=>i===v?(v<limiar?0:Math.round((v-limiar)*0.9)):null);
+        } else if(lei==='lim') {
+          leiChart.data.datasets[0].data = xs.map(x=>x<limiar?0:1);
+          leiChart.data.datasets[1].data = xs.map((_,i)=>i===v?(v<limiar?0:1):null);
+        } else {
+          leiChart.data.datasets[0].data = xs.map(x=>x<limiar?null:Math.max(50,Math.round(500-x*4.2)));
+          leiChart.data.datasets[1].data = xs.map((_,i)=>i===v&&v>=limiar?Math.max(50,Math.round(500-v*4.2)):null);
+        }
+        leiChart.update('none');
+      }
+    }
+    function buildLeiChart() {
+      if(leiChart) { leiChart.destroy(); leiChart=null; }
+      const ctx = document.getElementById('chart-lei').getContext('2d');
+      const lei = document.getElementById('lei-sel').value;
+      const xs = Array.from({length:101},(_,i)=>i);
+      const limiar=30;
+      let d0, yLabel, color='#378ADD';
+      if(lei==='int') { d0=xs.map(x=>x<limiar?0:Math.round((x-limiar)*0.9)); yLabel='Magnitude da resposta'; }
+      else if(lei==='lim') { d0=xs.map(x=>x<limiar?0:1); yLabel='Resposta eliciada (0=não, 1=sim)'; color='#1D9E75'; }
+      else { d0=xs.map(x=>x<limiar?null:Math.max(50,Math.round(500-x*4.2))); yLabel='Latência (ms)'; color='#D85A30'; }
+      leiChart = new Chart(ctx, {
+        data: {
+          labels:xs,
+          datasets:[
+            { type:'line', data:d0, borderColor:color, backgroundColor:color+'18', tension:.4, pointRadius:0, fill:true },
+            { type:'scatter', data:[], backgroundColor:color, pointRadius:7 }
+          ]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{ticks:{maxTicksLimit:11,color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Intensidade do estímulo',color:'#888',font:{size:11}}},
+            y:{ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:yLabel,color:'#888',font:{size:11}}}
+          }
+        }
+      });
+      document.getElementById('lei-legend').innerHTML = '<span><span class="legend-dot" style="background:'+color+'"></span>'+yLabel+'</span>';
+      updateLeiSim();
+    }
+    
+    const hsData = {
+      hab: {
+        labels: Array.from({length:16},(_,i)=>(i+1)*8),
+        datasets: [{ label:'Magnitude (mm)', color:'#378ADD', data:[10,9.2,8.1,7.3,6.5,6.0,5.4,5.0,4.7,4.3,4.0,3.8,3.6,3.4,3.2,3.0] }],
+        info:'Habituação: com repetição do estímulo em intervalos longos (~16s), a magnitude da resposta diminui progressivamente e a latência aumenta. A resposta não desaparece, apenas enfraquece.',
+        conclusion:'A habituação é temporária: se a apresentação do estímulo for interrompida por algum tempo, a resposta volta ao nível inicial (recuperação espontânea).'
+      },
+      sens: {
+        labels: Array.from({length:16},(_,i)=>(i+1)*8),
+        datasets: [{ label:'Magnitude (mm)', color:'#D85A30', data:[10,10.4,11.0,11.8,12.3,13.0,13.6,14.2,14.8,15.2,15.6,15.9,16.1,16.3,16.4,16.5] }],
+        info:'Sensibilização: com repetição do estímulo em intervalos curtos (~2s), ou com estímulos aversivos, a magnitude da resposta aumenta progressivamente e a latência diminui.',
+        conclusion:'Intervalos curtos entre estímulos tendem a gerar sensibilização. Estímulos aversivos (ex: choques elétricos) também tendem a produzir sensibilização em vez de habituação.'
+      },
+      esq: {
+        labels: [1,10,20,30,40,50,60,70,80,90,100,111,121],
+        datasets: [
+          { label:'Sem diagnóstico', color:'#378ADD', data:[10,9.0,7.8,6.8,6.0,5.3,4.8,4.4,4.0,3.7,3.5,3.2,3.0] },
+          { label:'Esquizofrenia', color:'#D85A30', data:[10,9.5,8.9,8.2,7.5,7.0,6.5,6.2,5.9,5.6,5.4,5.2,5.0] },
+          { label:'Outro diagnóstico', color:'#1D9E75', data:[10,9.2,8.3,7.4,6.8,6.2,5.7,5.3,5.0,4.7,4.5,4.3,4.1] }
+        ],
+        info:'Estudo de Geyer & Braff (1982): participantes foram expostos a 121 eliciações do reflexo de sobressalto acústico (116 dB). Pessoas com esquizofrenia apresentaram menor habituação — a resposta de piscar diminuiu menos (~50%) do que em participantes sem esse diagnóstico (~70%).',
+        conclusion:'Diferenças na habituação são usadas como biomarcador em pesquisas sobre esquizofrenia. A menor habituação sugere alteração no processamento sensorial e de filtro de estímulos.'
+      }
+    };
+    function updateHS() {
+      const proc = document.getElementById('hs-proc').value;
+      const d = hsData[proc];
+      document.getElementById('hs-info').textContent = d.info;
+      document.getElementById('hs-conclusion').textContent = d.conclusion;
+      const leg = document.getElementById('hs-legend');
+      leg.innerHTML = d.datasets.map(ds=>`<span class="hab-tag" style="background:${ds.color}22;color:${ds.color}">${ds.label}</span>`).join('');
+      buildHSChart();
+    }
+    function buildHSChart() {
+      if(hsChart){hsChart.destroy();hsChart=null;}
+      const proc = document.getElementById('hs-proc').value;
+      const d = hsData[proc];
+      const ctx = document.getElementById('chart-hs').getContext('2d');
+      hsChart = new Chart(ctx, {
+        type:'line',
+        data:{
+          labels:d.labels,
+          datasets: d.datasets.map(ds=>({
+            label:ds.label, data:ds.data, borderColor:ds.color,
+            backgroundColor:ds.color+'18', tension:.4, pointRadius:3, fill:proc!=='esq'
+          }))
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Número de eliciações',color:'#888',font:{size:11}}},
+            y:{ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Magnitude da resposta (mm)',color:'#888',font:{size:11}},min:0}
+          }
+        }
+      });
+    }
+    
+    const emoData = {
+      medo:{ stim:'Estímulo: predador, situação de perigo, ameaça à sobrevivência', resps:['Secreção de adrenalina','Vasoconstrição periférica','Aumento de FC','Dilatação pupilar','Tensão muscular','Sudorese'], vals:[90,80,85,75,70,65] },
+      susto:{ stim:'Estímulo: barulho alto e súbito, movimento inesperado', resps:['Contração muscular','Piscar dos olhos','Taquicardia','Sobressalto','Elevação dos ombros'], vals:[95,90,70,85,60] },
+      ansiedade:{ stim:'Estímulo: situação de falar em público (reflexo condicionado)', resps:['Taquicardia','Sudorese nas mãos','Boca seca','Tremor','Rubor facial','Tensão abdominal'], vals:[80,75,65,60,55,70] },
+      excitacao:{ stim:'Estímulo: estímulo prazeroso, novidade, antecipação de recompensa', resps:['Liberação de dopamina','Aumento de FC','Dilatação pupilar','Aumento de atenção','Energia muscular'], vals:[90,75,65,80,70] }
+    };
+    function updateEmo() {
+      const em = document.getElementById('em-sel').value;
+      const d = emoData[em];
+      document.getElementById('em-stim').textContent = d.stim;
+      const cards = d.resps.slice(0,3).map((r,i)=>`
+        <div class="metric-card">
+          <div class="metric-label">${r}</div>
+          <div class="metric-value" style="font-size:16px;">${d.vals[i]}%</div>
+        </div>`).join('');
+      document.getElementById('em-cards').innerHTML = cards;
+      buildEmoChart();
+    }
+    function buildEmoChart() {
+      if(emoChart){emoChart.destroy();emoChart=null;}
+      const em = document.getElementById('em-sel').value;
+      const d = emoData[em];
+      const ctx = document.getElementById('chart-emo').getContext('2d');
+      emoChart = new Chart(ctx, {
+        type:'bar',
+        data:{ labels:d.resps, datasets:[{ label:'Intensidade (%)', data:d.vals, backgroundColor:'#1D9E7588', borderColor:'#1D9E75', borderWidth:1, borderRadius:4 }] },
+        options:{
+          indexAxis:'y', responsive:true, maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{ticks:{color:'#888'},grid:{color:'rgba(128,128,128,.1)'},title:{display:true,text:'Intensidade relativa (%)',color:'#888',font:{size:11}},min:0,max:100},
+            y:{ticks:{color:'#888',font:{size:12}},grid:{color:'rgba(128,128,128,.07)'}}
+          }
+        }
+      });
+    }
+    
+    window.addEventListener('load', ()=>{
+      buildIntMagChart();
+      updateReflex();
+    });
+    </script>
+    
